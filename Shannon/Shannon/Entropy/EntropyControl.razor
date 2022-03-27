@@ -1,0 +1,58 @@
+﻿@using MudBlazor
+@using Xyaneon.Bioinformatics.FASTA
+@using Xyaneon.Bioinformatics.FASTA.IO
+@page "/entropy"
+<h3>EntropyControl</h3>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnLoadFiles" > LoadFiles</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnShow" > Show Loading result</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnTest" > Show Loading result</MudButton>
+
+    <p>Sequences:</p>
+    @foreach (var sequence in _fastaReader.Sequences)
+    {
+        @if (_show)
+        {
+            @foreach (var headeritem in sequence.Header.Items)
+            {
+                <p> @headeritem.ToString()</p>
+
+            }
+            <p> @sequence.Data.ToMultilineString().ToString()</p>
+        }
+    }    
+
+
+@code {
+    private FastaReader _fastaReader = new FastaReader();
+    private bool _show = false;
+
+    private void OnTest()
+    {
+        List<Sequence> tmp = new List<Sequence>();
+
+        foreach (var sequence in _fastaReader.Sequences)
+        {
+            tmp.Add(sequence);
+        }
+     
+        _fastaReader.Test(   tmp[0].Data.ToMultilineString(),   tmp[1].Data.ToMultilineString());
+
+    }
+    private void OnShow()
+    {
+        if (_show)
+        {
+            _show = false;
+        }
+        else
+        {
+            _show = true;
+        }
+    }
+    private void OnLoadFiles()
+    {
+        _fastaReader.ReadFile("Samples/sequence.fasta");
+        StateHasChanged();
+    }
+}
