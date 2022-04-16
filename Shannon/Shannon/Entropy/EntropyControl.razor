@@ -98,4 +98,21 @@
         _fastaReader.ReadFile("Alingments/sequence.fasta");
         StateHasChanged();
     }
+
+    public void DisplayInConsole(object obj)
+    {
+        Type objtype = obj.GetType();
+        var properties = objtype.GetProperties();
+
+        foreach (var property in properties)
+        {
+            var propValue = property.GetValue(obj);
+            var propType = propValue.GetType();
+
+            if (propType.IsPrimitive || propType == typeof(string))
+            {
+                Console.WriteLine($"{property.Name} : {propValue}");
+            }
+        }
+    }
 }
