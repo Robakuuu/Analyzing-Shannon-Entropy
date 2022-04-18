@@ -2,12 +2,16 @@
 @using Xyaneon.Bioinformatics.FASTA
 @using Xyaneon.Bioinformatics.FASTA.IO
 @using ShannonEntropyCal
+@using System.Diagnostics
 @page "/entropy"
 <h3>EntropyControl</h3>
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnLoadFiles" > LoadFiles</MudButton>
 <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnShow" > Show Loading result</MudButton>
 <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="OnCalculate" > Calculate</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="async ()=>await OnGeneratePlot()" > Generate plot</MudButton>
+<MudTextField @bind-Value="PythonScriptPath" Label="Python script" Variant="Variant.Text"></MudTextField>
+<MudTextField @bind-Value="FilePath" Label="File path" Variant="Variant.Text"></MudTextField>
 
 
     <p>Sequences:</p>
@@ -23,6 +27,19 @@
         
         }
     }    
+
+@if (PlotGenerating)
+{
+    @if (!PlotGenerated)
+    {
+        <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
+    }
+    else
+    {
+        <img src="PythonScripts\Charts\seq.shannon.jpg" alt="chart">   
+    }
+
+}
 @if (_show)
 {
     <MudChart ChartType="ChartType.Line" ChartSeries="@Series" @bind-SelectedIndex="_index" XAxisLabels="@XAxisLabels" Width="100%" Height="100%"></MudChart>
@@ -35,7 +52,40 @@
     private bool _show = false;
     public string[] XAxisLabels = new string[]{};
     public List<ChartSeries> Series = new List<ChartSeries>();
+    public string PythonScriptPath { get; set; } = "\"G:\\Licek\\Analyzing-Shannon-Entropy\\Shannon\\Shannon\\wwwroot\\PythonScripts\\Charts\\SeqEntropy.py\"";
+    public string FilePath { get; set; } = "\"G:\\Licek\\Analyzing-Shannon-Entropy\\Shannon\\Shannon\\wwwroot\\PythonScripts\\Charts\\seq.shannon\"";
+    public string SourceChart { get; set; } = "\"G:\\Licek\\Analyzing-Shannon-Entropy\\Shannon\\Shannon\\wwwroot\\PythonScripts\\Charts\\seq.shannon.jpg\"";
 
+    public bool PlotGenerating { get; set; }
+    public bool PlotGenerated { get; set; }
+
+    private async Task GeneratingPlot()
+    {
+        string cmd = @"C:\Python39\python.exe";
+     
+        string tmp =Environment.CurrentDirectory;
+        
+        ProcessStartInfo start = new ProcessStartInfo();
+        start.FileName = cmd;
+        start.Arguments = string.Format("{0} {1}", PythonScriptPath, FilePath);
+        start.UseShellExecute = false;
+        start.RedirectStandardOutput = true;
+        using(Process process = Process.Start(start))
+        {
+            using(StreamReader reader = process.StandardOutput)
+            {
+                string result = reader.ReadToEnd();
+                Console.Write(result);
+            }
+        }
+        PlotGenerated = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task OnGeneratePlot()
+    {
+        PlotGenerating = true;
+        await Task.Run(GeneratingPlot);
+    }
     private void OnCalculate()
     {
         foreach (var sequence in _fastaReader.Sequences)

@@ -1,4 +1,3 @@
-from curses.ascii import isalnum
 from pickle import TRUE
 import matplotlib.pyplot as plt
 import sys
@@ -18,19 +17,19 @@ class SeqEntropy:
         datas=self.PrepareData(datas)
         title=self.GetFileName(pathToFile)
         self.GeneratePlot(datas,title)
-        print(datas)
+        print("Plot generated.")
         
     def GetFileName(self,pathToFile:str):
-        index= pathToFile.rfind("/")
-        return pathToFile[index+1:]
+        index= pathToFile.rfind("\\")
+        return pathToFile
     def GeneratePlot(self,datas,title):
         xpoints = datas
         ypoints=[]
         for index in range(len(xpoints)):
             ypoints.append(index+1)
         plt.plot(ypoints,xpoints, linestyle = 'dotted')
-        plt.title("Plot generated from: "+title)
-        plt.show()
+        plt.title("Plot generated from: ")
+        plt.savefig(title+'.jpg')
     def PrepareData(self,data):
         returnData =[]
         for item in data:
@@ -52,6 +51,6 @@ class SeqEntropy:
     def CheckFileExisitng(self,filePath):
         if exists(filePath):
             return  True
+        print("File doesnt exist.")
         return False
-
 app = SeqEntropy()
