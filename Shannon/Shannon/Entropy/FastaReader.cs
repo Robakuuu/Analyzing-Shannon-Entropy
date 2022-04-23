@@ -1,4 +1,7 @@
-﻿using Xyaneon.Bioinformatics.FASTA;
+﻿using System.Collections.ObjectModel;
+using Blazorise.Extensions;
+using Microsoft.VisualBasic;
+using Xyaneon.Bioinformatics.FASTA;
 using Xyaneon.Bioinformatics.FASTA.IO;
 
 
@@ -7,6 +10,7 @@ namespace Shannon.Entropy
     public class SequenceEntropy
     {
         public List<double> Score { get; set; }
+        public string Name { get; set; }
 
         public SequenceEntropy()
         {
@@ -26,6 +30,23 @@ namespace Shannon.Entropy
         public void ReadFile(string path)
         {
             Sequences = SequenceFileReader.ReadMultipleFromFile(path);
+        }
+        public void ReadMultipleFromString(string content)
+        {
+
+            var t = content.Length;
+            content = content.Replace(" ", "");
+            var a = content.Length;
+            var tmp = content.Replace("\r","").Split("\n").ToList();
+           
+            //foreach (var elem in tmp)
+            //{
+            //    if (elem.IsNullOrEmpty())
+            //    {
+            //        tmp.Remove(elem);
+            //    }
+            //}
+            Sequences = Sequence.ParseMultiple(tmp);
         }
 
     }
