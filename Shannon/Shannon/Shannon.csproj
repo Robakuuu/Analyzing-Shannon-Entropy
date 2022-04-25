@@ -15,7 +15,6 @@
     <PackageReference Include="Blazorise.Charts" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.3" PrivateAssets="all" />
-    <PackageReference Include="Modellution.Controls" Version="1.1.0.38" />
     <PackageReference Include="MudBlazor" Version="6.0.9" />
     <PackageReference Include="Xyaneon.Bioinformatics.FASTA" Version="0.1.0" />
   </ItemGroup>
