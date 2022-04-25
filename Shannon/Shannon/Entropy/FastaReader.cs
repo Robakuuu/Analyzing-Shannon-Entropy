@@ -35,17 +35,10 @@ namespace Shannon.Entropy
         {
 
             var t = content.Length;
-            content = content.Replace(" ", "");
+           // content = content.Replace(" ", "");
             var a = content.Length;
             var tmp = content.Replace("\r","").Split("\n").ToList();
-           
-            //foreach (var elem in tmp)
-            //{
-            //    if (elem.IsNullOrEmpty())
-            //    {
-            //        tmp.Remove(elem);
-            //    }
-            //}
+
             Sequences = Sequence.ParseMultiple(tmp);
         }
 
