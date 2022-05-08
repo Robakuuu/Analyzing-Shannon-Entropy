@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <Content Remove="C:\Users\Daniel\.nuget\packages\modellution.controls\1.1.0.38\contentFiles\any\net6.0\Scripts\tsconfig.json" />
+    <Content Remove="compilerconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="compilerconfig.json" />
   </ItemGroup>
 
   <ItemGroup>

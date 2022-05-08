@@ -1,0 +1,10 @@
+﻿[
+  {
+    "outputFile": "wwwroot/css/ShannonStyle.css",
+    "inputFile": "wwwroot/css/ShannonStyle.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/app.css",
+    "inputFile": "wwwroot/css/app.scss"
+  }
+]

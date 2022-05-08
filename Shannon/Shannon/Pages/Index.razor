@@ -1,9 +1,32 @@
 ﻿@page "/"
+@using MudBlazor
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudCarousel Style="height: 100vh;" ShowArrows="false" ShowBullets="false" AutoCycle="false"  TData="object">
+    <MudCarouselItem Transition="transition" Color="@Color.Tertiary">
+     
+        <div class="d-flex" style="height: 100%">
+            <MudText Typo="Typo.h1" Class="mx-auto my-auto">Shannon Tool <br/>
+                <br/>
+                <MudText Typo="Typo.body1" Class="mx-auto my-auto">This tool allows you to calculate entropy, based on nucleotide sequence and visualize it by simple chart. You can compare few sequences.
+                    <br/>Input format: FASTA file or text.
+                    <br/>Tool is based on webassembly, so performance strictly depends on your machine resources.
+                </MudText>
+           
+                <div class="caption-author">
+                    <MudText Typo="Typo.caption">- Daniel Robaszkiewicz, author </MudText>
+                </div>
+              
+            </MudText>
+           
+        </div>
+      
+    </MudCarouselItem>
 
-Welcome to your new app.
+</MudCarousel>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code{
+    private Transition transition = Transition.Slide;
+}

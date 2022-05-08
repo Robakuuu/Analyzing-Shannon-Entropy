@@ -1,17 +1,33 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<MudThemeProvider Theme="@Theme"/>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudLayout>
+    <MudAppBar Elevation="1" >
+        <NavLink href="">
+        <MudText Typo="Typo.h5" Style="Color: white">Shannon Tool</MudText>
+        </NavLink>
+        <MudSpacer/>
+        <NavLink href="entropy">
+            <MudButton Variant="Variant.Filled" Style="Color: white">Shannon entropy</MudButton>
+        </NavLink>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code
+{
+    public MudTheme Theme = new MudTheme()
+    {
+      Palette = new Palette()
+      {
+          AppbarBackground = Colors.Grey.Darken3,
+          Primary = Colors.Grey.Darken3,
+          Tertiary = Colors.Grey.Darken4
+      }
+    };
+}

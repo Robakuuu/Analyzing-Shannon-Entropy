@@ -10,7 +10,7 @@
 
 @page "/entropy"
 <h3>EntropyControl</h3>
-<MudThemeProvider />
+
 <InputFile OnChange="@StartLoadingFiles" multiple />
 
 
@@ -66,15 +66,6 @@
     <LineChart @ref="lineChart" TItem="double" />
 }
 @code {
-
-    public MudTheme Theme = new()
-        {
-            Palette = new Palette()
-            {
-                Primary = Colors.Blue.Default
-            }
-        };
-
 
     LineChart<double> lineChart = new LineChart<double>();
     private List<IBrowserFile> loadedFiles = new();
