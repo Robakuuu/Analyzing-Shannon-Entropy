@@ -7,17 +7,38 @@
 @using ShannonEntropyCal
 @using Color = MudBlazor.Color
 @using System.ComponentModel
+@using MudBlazor.Utilities
 
 @page "/entropy"
-<h3>EntropyControl</h3>
 
-<InputFile OnChange="@StartLoadingFiles" multiple />
+<MudContainer>
+ 
+    <MudExpansionPanels MultiExpansion="true">
+        <MudExpansionPanel Text="1. Load data" >
+            <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
+            <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
+            <MudButton HtmlTag="label"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Filled.CloudUpload"
+                       for="fileInput">
+                Upload Files
+            </MudButton>
+            <br/>
+            <MudText Typo="Typo.body1"> ...or by text:</MudText>
+            <MudTextField T="string" Label="Sequences in fasta format"  Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
+                Read
+            </MudButton>
+            @if (isLoading)
+            {
+                <p>Loading...</p>
+            }
+        </MudExpansionPanel>
 
-
-        @if (isLoading)
-        {
-            <p>Loading...</p>
-        }
+        <MudExpansionPanel Text="2. Choose sequence">
+          
         @if (_fastaReader.Sequences.Count() != 0)
         {
             <MudPaper Width="300px">
@@ -55,20 +76,40 @@
                 </MudList>
             </MudPaper>
         }
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="3. Set range" MaxHeight="1000">
+            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
+            <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
+        </MudExpansionPanel>
+       
+    </MudExpansionPanels>
+
+ 
+    
 
 
 <br/>
-<MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
-<MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
+
 <MudButton Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(@ChoosenSequence))" Color="Color.Primary">Change range</MudButton>
+
+</MudContainer>
+
+
+
+
+
+
+      
 @if (PlotShow)
 {
     <LineChart @ref="lineChart" TItem="double" />
 }
+
 @code {
 
     LineChart<double> lineChart = new LineChart<double>();
     private List<IBrowserFile> loadedFiles = new();
+    private string _inputText = "";
     private long maxFileSize = 1024 * 1024 * 15;
     private int maxAllowedFiles = 3;
     private bool isLoading = false;
@@ -108,6 +149,10 @@
             };
     }
 
+    private bool CheckIdDataAreLoaded()
+    {
+        return _fastaReader.Sequences.Any();
+    }
     private async Task ClearChart()
     {
         chartSeqences.Clear();
@@ -142,6 +187,17 @@
         await Task.Run(()=>AddOrRemoveFromChart(seqname));
     }
 
+    private void ReadFromText(string text)
+    {
+        _fastaReader.ReadMultipleFromString(text);
+        isLoading = false;
+    }
+
+    private async Task OnRead(string text)
+    {
+        isLoading = true;
+        await Task.Run(()=>ReadFromText(text));
+    }
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         var tmp = e.File.OpenReadStream(maxFileSize);
