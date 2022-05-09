@@ -1,0 +1,64 @@
+﻿@page "/test"
+@using Newtonsoft.Json
+@using Formatting = System.Xml.Formatting
+@inject IJSRuntime JS
+
+
+<p>
+    <button @onclick="SetData">Set Data</button>
+    <button @onclick="SetStock">Set Stock</button>
+</p>
+
+<div id="LineChart" style="width:600px;height:250px;"></div>
+
+@code {
+
+    int[] tab1 = new[] {0} ;
+    int[] tab2 = new[] {0} ;
+
+    public class ChartData
+    {
+        
+        public float[] x = new float[0];
+        public float[] y = new float[0];
+        public string mode = "lines";
+    }
+
+    private async Task SetData()
+    {
+        Random rnd = new Random();
+
+        List<int> test1 = new List<int>();
+        List<int> test2 = new List<int>();
+        for (int x = 1; x < 30000; x++)
+        {
+            test2.Add(rnd.Next());
+            test1.Add(x);
+        }
+
+        tab1 = test1.ToArray();
+        tab2 = test2.ToArray();
+    }
+    private async Task SetStock()
+    {
+
+        ChartData chartData = new ChartData()
+        {
+            x = new List<float>(){1, 2, 3, 4}.ToArray(),
+            y = new List<float>(){10, 15, 13, 17}.ToArray(),
+            mode = "scatter"
+        };
+        ChartData chartData2 = new ChartData()
+        {
+            x = new List<float>(){1, 2, 3, 4}.ToArray(),
+            y = new List<float>(){16, 5, 11, 9}.ToArray(),
+            mode = "scatter"
+        };
+
+        List<ChartData> datas = new List<ChartData>();
+        datas.Add(chartData);
+        datas.Add(chartData2);
+        string json = JsonConvert.SerializeObject(datas);
+        await JS.InvokeVoidAsync("test",chartData,chartData2);
+    }
+}
