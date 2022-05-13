@@ -8,6 +8,8 @@
 @using Color = MudBlazor.Color
 @using System.ComponentModel
 @using MudBlazor.Utilities
+@using Newtonsoft.Json
+@inject IJSRuntime JS
 
 @page "/entropy"
 
@@ -31,7 +33,7 @@
                        Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
                 Read
             </MudButton>
-            @if (isLoading)
+            @if (_isLoading)
             {
                 <p>Loading...</p>
             }
@@ -47,9 +49,9 @@
                 {
                     <MudListItem AdornmentColor="Color.Primary"> @seq.Header.ToString()
                         <br/>
-                        @if (ChoosenSequence == seq.Header.ToString() || chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
+                        @if (ChoosenSequence == seq.Header.ToString() || _chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                         {
-                            @if (chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
+                            @if (_chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                             {
                                 <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Unload</MudButton>
                             }
@@ -102,23 +104,25 @@
       
 @if (PlotShow)
 {
-    <LineChart @ref="lineChart" TItem="double" />
+    <div id="LineChart" ></div>
 }
 
 @code {
-
-    LineChart<double> lineChart = new LineChart<double>();
+    public class ChartData
+    {
+        
+        public double[] x = new double[0];
+        public double[] y = new double[0];
+        public string mode = "lines";
+        public string name = "";
+    }
+    List<ChartData> lineChart = new List<ChartData>();
     private List<IBrowserFile> loadedFiles = new();
     private string _inputText = "";
     private long maxFileSize = 1024 * 1024 * 15;
-    private int maxAllowedFiles = 3;
-    private bool isLoading = false;
-    private decimal progressPercent;
+    private bool _isLoading = false;
     public int StartRange { get; set; }
     public int EndRange { get; set; }
-    List<string> Labels = new List<string>();
-    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
-    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
 
     public class CurrentSequencesOnChart
     {
@@ -128,74 +132,54 @@
     private int _index = -1; //default value cannot be 0 -> first selectedindex is 0.
     private FastaReader _fastaReader = new FastaReader();
     private int _subsequenceLength = 18;
-    private List<double> _chartValues = new List<double>();
-    private List<CurrentSequencesOnChart> chartSeqences = new List<CurrentSequencesOnChart>();
+    private List<CurrentSequencesOnChart> _chartSeqences = new List<CurrentSequencesOnChart>();
 
     public bool PlotShow { get; set; } = true;
     public string ChoosenSequence { get; set; } = "";
 
 
-    LineChartDataset<double> GetLineChartDataset(List<double> values,string seqname="")
-    {
-        return new LineChartDataset<double>
-            {
-                Label = seqname,
-                Data = values,
-                BackgroundColor = backgroundColors,
-                BorderColor = borderColors,
-                Fill = true,
-                PointRadius = 3,
-                CubicInterpolationMode = "monotone"
-            };
-    }
-
-    private bool CheckIdDataAreLoaded()
-    {
-        return _fastaReader.Sequences.Any();
-    }
     private async Task ClearChart()
     {
-        chartSeqences.Clear();
-        _chartValues.Clear();
+        _chartSeqences.Clear();
         ChoosenSequence = "";
         await Task.Run(HandleRedraw);
     }
 
     private async Task AddOrRemoveFromChart(string seqname)
     {
-        if (chartSeqences.All(x => x.name != seqname))
+        if (_chartSeqences.All(x => x.name != seqname))
         {
-            chartSeqences.Add(new CurrentSequencesOnChart() { name = seqname, seq = OnCalculateSequence(seqname) });
+            _chartSeqences.Add(new CurrentSequencesOnChart() { name = seqname, seq = OnCalculateSequence(seqname) });
             await Task.Run(HandleRedraw);
         }
         else
         {
-            var tmp = chartSeqences.Where(x => x.name == seqname);
+            var tmp = _chartSeqences.Where(x => x.name == seqname);
 
-            var tmpchart = chartSeqences;
+            var tmpchart = _chartSeqences;
             foreach (var item in tmp.ToArray())
             {
                 tmpchart.Remove(item);
             }
-            chartSeqences = tmpchart;
+            _chartSeqences = tmpchart;
             await Task.Run(HandleRedraw);
         }
     }
     private async Task StartAddOrRemoveFromChart(string seqname)
     {
-        isLoading = true;
+        _isLoading = true;
         await Task.Run(()=>AddOrRemoveFromChart(seqname));
     }
 
     private void ReadFromText(string text)
     {
         _fastaReader.ReadMultipleFromString(text);
-        isLoading = false;
+        _isLoading = false;
     }
 
     private async Task OnRead(string text)
     {
-        isLoading = true;
+        _isLoading = true;
         await Task.Run(()=>ReadFromText(text));
     }
     private async Task LoadFiles(InputFileChangeEventArgs e)
@@ -204,13 +188,13 @@
         StreamReader reader = new StreamReader(tmp);
         string text = await reader.ReadToEndAsync();
         _fastaReader.ReadMultipleFromString(text);
-        isLoading = false;
+        _isLoading = false;
     }
     private async Task StartLoadingFiles(InputFileChangeEventArgs e)
     {
         if (e.FileCount != 1) return;
         if (!e.File.Name.EndsWith(".fasta")) return;
-        isLoading = true;
+        _isLoading = true;
         await Task.Run(()=>LoadFiles(e));
     }
 
@@ -233,21 +217,9 @@
     }
     private async Task GeneratingPlot(SequenceEntropy seqentEntropy)
     {
-        List<string> tmp = new List<string>();
-        int counter = 1;
-        _chartValues.Clear();
-        foreach (var sc in seqentEntropy.Score)
-        {
-            if (counter >= StartRange &&
-                counter <= EndRange)
-            {
-                _chartValues.Add(sc);
-                tmp.Add(counter.ToString());
-            }
-            counter++;
-        }
-        Labels = tmp;
-
+        _chartSeqences.Clear();
+        _chartSeqences.Add(new CurrentSequencesOnChart(){name = seqentEntropy.Name,seq = seqentEntropy});
+        await HandleRedraw();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -261,28 +233,46 @@
     async Task HandleRedraw()
     {
 
-        await lineChart.Clear();
-        foreach (var seq in chartSeqences)
+        lineChart.Clear();
+        foreach (var seq in _chartSeqences)
         {
-            await lineChart.AddDataSet(GetLineChartDataset(GetEntropyScoreList(seq.seq),seq.name));
+            var list = GetEntropyScoreList(seq.seq);
+            List<double> yAxis = new List<double>();
+            int tmp = 0;
+            foreach (var counter in list)
+            {
+                yAxis.Add(tmp);
+                tmp++;
+            }
+
+            ChartData chartData = new ChartData()
+            {
+                x = yAxis.ToArray(),
+                y = list.ToArray(),
+                mode = "scatter",
+                name = seq.name
+            };
+            lineChart.Add(chartData);
         }
-        await lineChart.AddLabelsDatasetsAndUpdate(Labels, GetLineChartDataset(_chartValues,ChoosenSequence));
+        string json = JsonConvert.SerializeObject(lineChart);
+        await JS.InvokeVoidAsync("test",json);
 
 
-        isLoading = false;
-        //await InvokeAsync(StateHasChanged);
+        _isLoading = false;
+        StateHasChanged();
+   
     }
 
     private async Task OnStartGeneratePlot(string seqname)
     {
-        isLoading = true;
+        _isLoading = true;
         ChoosenSequence = seqname;
         await Task.Run(()=>OnGeneratePlot(seqname));
     }
     private async Task OnGeneratePlot(string seqname)
     {
         await GeneratingPlot(OnCalculateSequence(seqname));
-        await HandleRedraw();
+       
     }
     private SequenceEntropy OnCalculateSequence(string seqname)
     {
