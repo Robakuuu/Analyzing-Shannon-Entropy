@@ -16,12 +16,14 @@
     int[] tab1 = new[] {0} ;
     int[] tab2 = new[] {0} ;
 
+
     public class ChartData
     {
         
         public float[] x = new float[0];
         public float[] y = new float[0];
         public string mode = "lines";
+        public string name = "";
     }
 
     private async Task SetData()
@@ -46,19 +48,22 @@
         {
             x = new List<float>(){1, 2, 3, 4}.ToArray(),
             y = new List<float>(){10, 15, 13, 17}.ToArray(),
-            mode = "scatter"
+            mode = "scatter",
+            name = "chart1"
         };
         ChartData chartData2 = new ChartData()
         {
             x = new List<float>(){1, 2, 3, 4}.ToArray(),
             y = new List<float>(){16, 5, 11, 9}.ToArray(),
-            mode = "scatter"
+            
+            mode = "scatter",
+             name = "chart2"
         };
 
         List<ChartData> datas = new List<ChartData>();
         datas.Add(chartData);
         datas.Add(chartData2);
         string json = JsonConvert.SerializeObject(datas);
-        await JS.InvokeVoidAsync("test",chartData,chartData2);
+        await JS.InvokeVoidAsync("test",json);
     }
 }

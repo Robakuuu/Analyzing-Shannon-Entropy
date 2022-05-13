@@ -1,10 +1,7 @@
 ﻿
-function test(chart1, chart2) {
+function test(datas) {
     LINECHART = document.getElementById('LineChart');
-    var layout = {
-        title: 'Line and Scatter Plot'
-    };
-    var data = [chart1,chart2];
-    Plotly.newPlot(LINECHART, data, layout);
+    var example = JSON.parse(datas);
+    Plotly.newPlot(LINECHART, example);
 };
 
