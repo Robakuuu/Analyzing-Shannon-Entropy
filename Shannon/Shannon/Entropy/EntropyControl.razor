@@ -92,7 +92,7 @@
 
 <br/>
 
-<MudButton Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(@ChoosenSequence))" Color="Color.Primary">Change range</MudButton>
+<MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
 
 </MudContainer>
 
@@ -122,7 +122,23 @@
     private long maxFileSize = 1024 * 1024 * 15;
     private bool _isLoading = false;
     public int StartRange { get; set; }
-    public int EndRange { get; set; }
+
+    public int EndRange
+    {
+        get
+        {
+            if (_endRange != 0) return _endRange;
+            int size = 0;
+            foreach (var seq in _chartSeqences)
+            {
+                if (seq.seq.Score.Count > size)
+                    size = seq.seq.Score.Count;
+            }
+            return size;
+
+        }
+        set => _endRange = value;
+    }
 
     public class CurrentSequencesOnChart
     {
@@ -133,6 +149,7 @@
     private FastaReader _fastaReader = new FastaReader();
     private int _subsequenceLength = 18;
     private List<CurrentSequencesOnChart> _chartSeqences = new List<CurrentSequencesOnChart>();
+    private int _endRange;
 
     public bool PlotShow { get; set; } = true;
     public string ChoosenSequence { get; set; } = "";
