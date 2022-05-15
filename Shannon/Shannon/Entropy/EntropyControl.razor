@@ -14,33 +14,34 @@
 @page "/entropy"
 
 <MudContainer>
- 
-    <MudExpansionPanels MultiExpansion="true">
-        <MudExpansionPanel Text="1. Load data" >
-            <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
-            <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
-            <MudButton HtmlTag="label"
-                       Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Filled.CloudUpload"
-                       for="fileInput">
-                Upload Files
-            </MudButton>
-            <br/>
-            <MudText Typo="Typo.body1"> ...or by text:</MudText>
-            <MudTextField T="string" Label="Sequences in fasta format"  Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
-                Read
-            </MudButton>
-            @if (_isLoading)
-            {
-                <p>Loading...</p>
-            }
-        </MudExpansionPanel>
-
-        <MudExpansionPanel Text="2. Choose sequence">
-          
+    @if (_isLoading)
+    {
+        <p>Loading...</p>
+    }
+    <MudPaper Class="pa-16 ma-2" Elevation="3">
+        <MudText Typo="Typo.h3">1. Upload data:</MudText>
+        <br/>
+        <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
+        <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Filled.CloudUpload"
+                   for="fileInput">
+            Upload Files
+        </MudButton>
+        <br/>
+        <MudText Typo="Typo.body1"> ...or by text:</MudText>
+        <MudTextField T="string" Label="Sequences in fasta format" Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
+        <br/>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
+            Read text
+        </MudButton>
+    </MudPaper>
+           
+            <MudPaper Class="pa-16 ma-2" Elevation="3">
+                <MudText Typo="Typo.h3">2. Choose sequences:</MudText>
         @if (_fastaReader.Sequences.Count() != 0)
         {
             <MudPaper Width="300px">
@@ -78,21 +79,23 @@
                 </MudList>
             </MudPaper>
         }
-        </MudExpansionPanel>
-        <MudExpansionPanel Text="3. Set range" MaxHeight="1000">
-            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
-            <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
-        </MudExpansionPanel>
-       
-    </MudExpansionPanels>
+            </MudPaper>
+    <MudPaper Class="pa-16 ma-2" Elevation="3">
+    <MudText Typo="Typo.h3">3. Choose properties:</MudText>
+        <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
+        <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
 
- 
-    
+            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
+        <MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
+    </MudPaper>
+
+
 
 
 <br/>
 
-<MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
+
 
 </MudContainer>
 
@@ -159,6 +162,17 @@
     {
         _chartSeqences.Clear();
         ChoosenSequence = "";
+        await Task.Run(HandleRedraw);
+    }
+    private async Task ChangeSubsequence()
+    {
+        List<CurrentSequencesOnChart> newSeqs = new List<CurrentSequencesOnChart>();
+        foreach (var seq in _chartSeqences)
+        {
+             newSeqs.Add(new CurrentSequencesOnChart() { name = seq.name, seq = OnCalculateSequence(seq.name) });
+        }
+        _chartSeqences.Clear();
+        _chartSeqences = newSeqs;
         await Task.Run(HandleRedraw);
     }
 
@@ -333,4 +347,7 @@
             }
         }
     }
+
+
+
 }
