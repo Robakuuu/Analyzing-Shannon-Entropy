@@ -7,6 +7,7 @@
 @using ShannonEntropyCal
 @using Color = MudBlazor.Color
 @using System.ComponentModel
+@using System.ComponentModel.Design
 @using MudBlazor.Utilities
 @using Newtonsoft.Json
 @inject IJSRuntime JS
@@ -20,9 +21,9 @@
     }
     <MudPaper Class="pa-16 ma-2" Elevation="3">
         <MudText Typo="Typo.h3">1. Upload data:</MudText>
-        <br/>
+        <br />
         <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
-        <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
+        <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple />
         <MudButton HtmlTag="label"
                    Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -30,62 +31,104 @@
                    for="fileInput">
             Upload Files
         </MudButton>
-        <br/>
+        <br />
         <MudText Typo="Typo.body1"> ...or by text:</MudText>
-        <MudTextField T="string" Label="Sequences in fasta format" Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
-        <br/>
+        <MudTextField T="string" Label="Sequences in fasta format" Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15" />
+        <br />
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
             Read text
         </MudButton>
     </MudPaper>
-           
-            <MudPaper Class="pa-16 ma-2" Elevation="3">
-                <MudText Typo="Typo.h3">2. Choose sequences:</MudText>
-        @if (_fastaReader.Sequences.Count() != 0)
-        {
-            <MudPaper Width="300px">
-                <MudList Clickable="true">
+
+    <MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
+        <MudNavMenu Class="mud-width-full">
+            <MudText Typo="Typo.h3">2. Choose sequences:</MudText>
+            <MudDivider Class="my-2" />
+
+            @if (_fastaReader.Sequences.Count() != 0)
+            {
+
                 @foreach (var seq in _fastaReader.Sequences)
                 {
-                    <MudListItem AdornmentColor="Color.Primary"> @seq.Header.ToString()
-                        <br/>
-                        @if (ChoosenSequence == seq.Header.ToString() || _chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
-                        {
-                            @if (_chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
+                    <MudNavGroup Title=@seq.Header.ToString() Icon="@Icons.Filled.Timeline" Expanded="false">
+                        <MudPaper Style="width: 100%; height: 10%">
+                            @if (ChoosenSequence == seq.Header.ToString() || _chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                             {
-                                <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Unload</MudButton>
-                            }
-                            else
-                            {
-                                <MudButton Variant="Variant.Filled" OnClick="@(() => ClearChart())" Color="Color.Primary">Clear</MudButton>
-                            }
+                                @if (_chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
+                                {
+                                    <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Unload</MudButton>
+                                }
+                                else
+                                {
+                                    <MudButton Variant="Variant.Filled" OnClick="@(() => ClearChart())" Color="Color.Primary">Clear</MudButton>
+                                }
 
-                        }
-                        else
-                        {
-                            @if (ChoosenSequence == "")
-                            {
-                                <MudButton Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
+                                @if (ChoosenSequence == "")
+                                {
+                                    <MudButton Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
+                                }
+                                else
+                                {
+                                    <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
+                                }
                             }
+                            <MudButton Variant="Variant.Filled" OnClick="@(() => DownloadDataFromNCBI(seq.Header.ToString()))" Color="Color.Primary">Fetch features from NCBI</MudButton>
+                        </MudPaper>
+                        @if (_fastaReader.NcbiDatas.Any(x => x.FULLNAME == seq.Header.ToString()))
+                        {
+                            <MudNavGroup Title="Features" Icon="@Icons.Filled.DensitySmall" Expanded="false">
+                                @foreach (var ncbi in _fastaReader.NcbiDatas.Where(x => x.FULLNAME == seq.Header.ToString()))
+                                {
+                                    @foreach (var set in ncbi.Sets)
+                                    {
+                                        @foreach (var feature in set.Features.DistinctBy(x => x.INSDFeatureKey))
+                                        {
+                                            <MudNavGroup Title=@feature.INSDFeatureKey Icon="@Icons.Filled.DataSaverOff" Expanded="false">
+                                                @foreach (var key in set.Features.Where(x =>x.INSDFeatureKey == @feature.INSDFeatureKey ))
+                                                {
+                                                    <MudNavGroup Title=@key.INSDFeatureLocation Icon="@Icons.Filled.LocationOn" Expanded="false">
+                                                        @foreach (var qual in key.Qualifiers)
+                                                    {
+                                                        <MudText>Name: @qual.Name</MudText>
+                                                        <MudText>Value: @qual.Value</MudText>
+                                                   
+                                                    }
+                                                    </MudNavGroup>
+                                                }
+                                            </MudNavGroup>
+                                         
+                                            <MudDivider Class="my-2" />
+                                        }
+                                    }
+
+
+                                }
+                            </MudNavGroup>
                         }
-                        <MudDivider/>
-                    </MudListItem>
+                    </MudNavGroup>
+
                 }
-                </MudList>
-            </MudPaper>
-        }
-            </MudPaper>
+
+            }
+
+
+
+        </MudNavMenu>
+    </MudPaper>
+
+
+
+
     <MudPaper Class="pa-16 ma-2" Elevation="3">
-    <MudText Typo="Typo.h3">3. Choose properties:</MudText>
+        <MudText Typo="Typo.h3">3. Choose properties:</MudText>
         <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
         <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
 
-            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
         <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
         <MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
     </MudPaper>
@@ -93,7 +136,7 @@
 
 
 
-<br/>
+    <br />
 
 
 
@@ -104,16 +147,16 @@
 
 
 
-      
+
 @if (PlotShow)
 {
-    <div id="LineChart" ></div>
+    <div id="LineChart"></div>
 }
 
 @code {
     public class ChartData
     {
-        
+
         public double[] x = new double[0];
         public double[] y = new double[0];
         public string mode = "lines";
@@ -164,12 +207,22 @@
         ChoosenSequence = "";
         await Task.Run(HandleRedraw);
     }
+
+    private async Task DownloadDataFromNCBI(string fullname)
+    {
+        var indexOfFirstSpace = fullname.IndexOf(" ", StringComparison.Ordinal);
+        string accesion = fullname.Substring(1, indexOfFirstSpace - 1);
+        Ncbi ncbi = new Ncbi(accesion, fullname);
+        await ncbi.Start();
+        _fastaReader.NcbiDatas.Add(ncbi);
+
+    }
     private async Task ChangeSubsequence()
     {
         List<CurrentSequencesOnChart> newSeqs = new List<CurrentSequencesOnChart>();
         foreach (var seq in _chartSeqences)
         {
-             newSeqs.Add(new CurrentSequencesOnChart() { name = seq.name, seq = OnCalculateSequence(seq.name) });
+            newSeqs.Add(new CurrentSequencesOnChart() { name = seq.name, seq = OnCalculateSequence(seq.name) });
         }
         _chartSeqences.Clear();
         _chartSeqences = newSeqs;
@@ -199,7 +252,7 @@
     private async Task StartAddOrRemoveFromChart(string seqname)
     {
         _isLoading = true;
-        await Task.Run(()=>AddOrRemoveFromChart(seqname));
+        await Task.Run(() => AddOrRemoveFromChart(seqname));
     }
 
     private void ReadFromText(string text)
@@ -211,7 +264,7 @@
     private async Task OnRead(string text)
     {
         _isLoading = true;
-        await Task.Run(()=>ReadFromText(text));
+        await Task.Run(() => ReadFromText(text));
     }
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
@@ -226,7 +279,7 @@
         if (e.FileCount != 1) return;
         if (!e.File.Name.EndsWith(".fasta")) return;
         _isLoading = true;
-        await Task.Run(()=>LoadFiles(e));
+        await Task.Run(() => LoadFiles(e));
     }
 
 
@@ -249,7 +302,7 @@
     private async Task GeneratingPlot(SequenceEntropy seqentEntropy)
     {
         _chartSeqences.Clear();
-        _chartSeqences.Add(new CurrentSequencesOnChart(){name = seqentEntropy.Name,seq = seqentEntropy});
+        _chartSeqences.Add(new CurrentSequencesOnChart() { name = seqentEntropy.Name, seq = seqentEntropy });
         await HandleRedraw();
     }
 
@@ -277,33 +330,33 @@
             }
 
             ChartData chartData = new ChartData()
-            {
-                x = yAxis.ToArray(),
-                y = list.ToArray(),
-                mode = "scatter",
-                name = seq.name
-            };
+                {
+                    x = yAxis.ToArray(),
+                    y = list.ToArray(),
+                    mode = "scatter",
+                    name = seq.name
+                };
             lineChart.Add(chartData);
         }
         string json = JsonConvert.SerializeObject(lineChart);
-        await JS.InvokeVoidAsync("test",json);
+        await JS.InvokeVoidAsync("test", json);
 
 
         _isLoading = false;
         StateHasChanged();
-   
+
     }
 
     private async Task OnStartGeneratePlot(string seqname)
     {
         _isLoading = true;
         ChoosenSequence = seqname;
-        await Task.Run(()=>OnGeneratePlot(seqname));
+        await Task.Run(() => OnGeneratePlot(seqname));
     }
     private async Task OnGeneratePlot(string seqname)
     {
         await GeneratingPlot(OnCalculateSequence(seqname));
-       
+
     }
     private SequenceEntropy OnCalculateSequence(string seqname)
     {

@@ -23,10 +23,14 @@ namespace Shannon.Entropy
         {
             Sequences = new List<Sequence>();
             EntropySequences = new List<SequenceEntropy>();
+            NcbiDatas = new List<Ncbi>();
         }
 
         public IEnumerable<Sequence> Sequences { get; set; }
         public List<SequenceEntropy> EntropySequences { get; set; }
+        public List<Ncbi> NcbiDatas { get; set; }
+
+      
         public void ReadFile(string path)
         {
             Sequences = SequenceFileReader.ReadMultipleFromFile(path);
