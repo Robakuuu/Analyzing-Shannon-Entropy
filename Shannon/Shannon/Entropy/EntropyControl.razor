@@ -42,7 +42,7 @@
     </MudPaper>
 
     <MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
-        <MudNavMenu Class="mud-width-full">
+        <MudNavMenu Class="mud-width-full" Bordered="true">
             <MudText Typo="Typo.h3">2. Choose sequences:</MudText>
             <MudDivider Class="my-2" />
 
@@ -52,16 +52,17 @@
                 @foreach (var seq in _fastaReader.Sequences)
                 {
                     <MudNavGroup Title=@seq.Header.ToString() Icon="@Icons.Filled.Timeline" Expanded="false">
-                        <MudPaper Style="width: 100%; height: 10%">
+                        <MudContainer>
+                            <MudList Clickable="true">
                             @if (ChoosenSequence == seq.Header.ToString() || _chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                             {
                                 @if (_chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                                 {
-                                    <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Unload</MudButton>
+                                    <MudListItem OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" >Unload</MudListItem>
                                 }
                                 else
                                 {
-                                    <MudButton Variant="Variant.Filled" OnClick="@(() => ClearChart())" Color="Color.Primary">Clear</MudButton>
+                                    <MudListItem  OnClick="@(() => ClearChart())" >Clear</MudListItem>
                                 }
 
                             }
@@ -69,15 +70,16 @@
                             {
                                 @if (ChoosenSequence == "")
                                 {
-                                    <MudButton Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
+                                    <MudListItem  OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))" >Add to chart</MudListItem>
                                 }
                                 else
                                 {
-                                    <MudButton Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" Color="Color.Primary">Add to chart</MudButton>
+                                    <MudListItem OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" >Add to chart</MudListItem>
                                 }
                             }
-                            <MudButton Variant="Variant.Filled" OnClick="@(() => DownloadDataFromNCBI(seq.Header.ToString()))" Color="Color.Primary">Fetch features from NCBI</MudButton>
-                        </MudPaper>
+                            <MudListItem OnClick="@(() => DownloadDataFromNCBI(seq.Header.ToString()))">Fetch features from NCBI</MudListItem>
+                            </MudList>
+                        </MudContainer>
                         @if (_fastaReader.NcbiDatas.Any(x => x.FULLNAME == seq.Header.ToString()))
                         {
                             <MudNavGroup Title="Features" Icon="@Icons.Filled.DensitySmall" Expanded="false">
@@ -95,7 +97,7 @@
                                                     {
                                                         <MudText>Name: @qual.Name</MudText>
                                                         <MudText>Value: @qual.Value</MudText>
-                                                   
+                                                        <MudDivider Class="my-2" />
                                                     }
                                                     </MudNavGroup>
                                                 }
