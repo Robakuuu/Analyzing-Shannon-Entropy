@@ -16,17 +16,19 @@ namespace Shannon
             URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=" + accesion + "&rettype=gbc&retmode=xml";
         }
 
-        public async Task Start()
+        public async Task<bool> Start()
         {
             try
             {
                 await Fetch();
                 await Parse();
                 await Get();
+                return true;
             }
             catch (ArgumentNullException ex)
             {
                 Console.WriteLine("Couldn't fetch data from NCBI");
+                return false;
             }
 
 
