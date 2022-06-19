@@ -35,7 +35,7 @@ namespace Shannon.Entropy
         {
             Sequences = SequenceFileReader.ReadMultipleFromFile(path);
         }
-        public void ReadMultipleFromString(string content)
+        public bool ReadMultipleFromString(string content)
         {
 
             var t = content.Length;
@@ -44,6 +44,10 @@ namespace Shannon.Entropy
             var tmp = content.Replace("\r","").Split("\n").ToList();
 
             Sequences = Sequence.ParseMultiple(tmp);
+
+            if (Sequences != null)
+                return true;
+            return false;
         }
 
     }

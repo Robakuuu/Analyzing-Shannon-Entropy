@@ -21,7 +21,14 @@
         <p>Loading...</p>
     }
     <MudPaper Class="pa-16 ma-2" Elevation="3">
-        <MudText Typo="Typo.h3">1. Upload data:</MudText>
+         
+        <MudText Typo="Typo.h3">
+             @if(_dataLoaded)
+        {
+            <MudIcon Size="Size.Large" Icon="@Icons.Filled.Done" Color="Color.Success"></MudIcon>
+        }
+        1. Upload data:</MudText>
+      
         <br/>
         <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
         <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
@@ -172,6 +179,7 @@
     private string _inputText = "";
     private long maxFileSize = 1024 * 1024 * 15;
     private bool _isLoading = false;
+    private bool _dataLoaded = false;
     public int StartRange { get; set; }
 
     public int EndRange
@@ -357,8 +365,9 @@
         var tmp = e.File.OpenReadStream(maxFileSize);
         StreamReader reader = new StreamReader(tmp);
         string text = await reader.ReadToEndAsync();
-        _fastaReader.ReadMultipleFromString(text);
+        _dataLoaded = _fastaReader.ReadMultipleFromString(text);
         _isLoading = false;
+        await Task.Run(this.StateHasChanged);
     }
     private async Task StartLoadingFiles(InputFileChangeEventArgs e)
     {
@@ -366,6 +375,7 @@
         if (!e.File.Name.EndsWith(".fasta")) return;
         _isLoading = true;
         await Task.Run(() => LoadFiles(e));
+
     }
 
 

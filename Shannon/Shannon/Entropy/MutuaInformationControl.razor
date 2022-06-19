@@ -1,0 +1,148 @@
+﻿@using MudBlazor
+@using Xyaneon.Bioinformatics.FASTA
+@using Xyaneon.Bioinformatics.FASTA.IO
+@using System.Diagnostics
+@using System.Runtime.CompilerServices
+@using Blazorise.Charts
+@using ShannonEntropyCal
+@using Color = MudBlazor.Color
+@using System.ComponentModel
+@using System.ComponentModel.Design
+@using MudBlazor.Utilities
+@using Newtonsoft.Json
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+
+@page "/mi"
+
+<MudSnackbarProvider/>
+<MudContainer>
+    @if (_isLoading)
+    {
+        <p>Loading...</p>
+    }
+    <MudPaper Class="pa-16 ma-2" Elevation="3">
+         
+        <MudText Typo="Typo.h3">
+             @if(_dataLoaded)
+        {
+            <MudIcon Size="Size.Large" Icon="@Icons.Filled.Done" Color="Color.Success"></MudIcon>
+        }
+        1. Upload data:</MudText>
+      
+        <br/>
+        <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
+        <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Filled.CloudUpload"
+                   for="fileInput">
+            Upload Files
+        </MudButton>
+        <br/>
+        <MudText Typo="Typo.body1"> ...or by text:</MudText>
+        <MudTextField T="string" Label="Sequences in fasta format" Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
+        <br/>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
+            Read text
+        </MudButton>
+    </MudPaper>
+    <MudStack>
+    @foreach( var seq in _fastaReader.Sequences)
+    {
+        <MudPaper Class="pa-4 mr-16"> @seq.Header.ToString() 
+
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
+    
+            @if(_firstSeqHeader == seq.Header.ToString())
+                    {
+                         <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsFirstToCompare">Unmark first sequence
+             </MudButton>    
+                    }
+                     @if(_secondSeqHeader == seq.Header.ToString())
+                    {
+                         <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsSecondToCompare">Unmark second sequence
+             </MudButton>    
+                    }
+                    @if(_firstSeqHeader=="")
+                {
+                  <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsFirstToCompare(seq.Header.ToString()))">Mark as first
+             </MudButton>    
+                }
+               @if(_secondSeqHeader=="")
+                {
+              <MudButton Size="Size.Small"  OnClick="@(() => OnMarkSeqAsSecondToCompare(seq.Header.ToString()))">Mark as second
+             </MudButton> 
+                }
+                </MudButtonGroup>
+             </MudPaper>
+
+    }
+    </MudStack>
+
+
+
+</MudContainer>
+@code {
+    private bool _firstSeqCheckBox { get; set; } = false;
+    private bool  _secondSeqCheckBox{ get; set; } = false;
+    private string _firstSeqHeader = "";
+    private string _secondSeqHeader = "";
+    private bool _isLoading = false;
+    private bool _dataLoaded = false;
+    private string _inputText = "";
+    private long maxFileSize = 1024 * 1024 * 15;
+    private FastaReader _fastaReader = new FastaReader();
+
+    public async Task OnUnMarkSeqAsSecondToCompare()
+    {
+       _secondSeqCheckBox = false;
+        _secondSeqHeader = "";   
+    }
+    public async Task OnUnMarkSeqAsFirstToCompare()
+    {
+            _firstSeqCheckBox = false;
+        _firstSeqHeader = "";
+    }
+    public async Task OnMarkSeqAsFirstToCompare(string header)
+    {
+        _firstSeqCheckBox = true;
+        _firstSeqHeader = header;
+    }
+    public async Task OnMarkSeqAsSecondToCompare(string header)
+    {
+        _secondSeqCheckBox = true;
+        _secondSeqHeader = header;
+    }
+    private void ReadFromText(string text)
+    {
+        _fastaReader.ReadMultipleFromString(text);
+        _isLoading = false;
+    }
+        private async Task OnRead(string text)
+    {
+        _isLoading = true;
+        await Task.Run(() => ReadFromText(text));
+    }
+
+        private async Task StartLoadingFiles(InputFileChangeEventArgs e)
+    {
+        if (e.FileCount != 1) return;
+        if (!e.File.Name.EndsWith(".fasta")) return;
+        _isLoading = true;
+        await Task.Run(() => LoadFiles(e));
+
+    }
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        var tmp = e.File.OpenReadStream(maxFileSize);
+        StreamReader reader = new StreamReader(tmp);
+        string text = await reader.ReadToEndAsync();
+        _dataLoaded = _fastaReader.ReadMultipleFromString(text);
+        _isLoading = false;
+        await Task.Run(this.StateHasChanged);
+    }
+}
