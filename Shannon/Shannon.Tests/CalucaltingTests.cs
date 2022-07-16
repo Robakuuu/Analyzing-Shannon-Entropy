@@ -22,6 +22,9 @@ namespace Shannon.Tests
             var result4 = sut.EntropyValue("");
             result4.Should().Be(0.00);
 
+            var result5 = sut.EntropyValue("ATTTACAGATTAGAGACA");
+            result5.Should().BeGreaterOrEqualTo(1.81634).And.BeLessOrEqualTo(1.81635);
+
         }
 
         [Fact]
