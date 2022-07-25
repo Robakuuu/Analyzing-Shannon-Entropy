@@ -22,72 +22,108 @@
     {
         <p>Loading...</p>
     }
-    <MudPaper Class="pa-16 ma-2" Elevation="3">
-         
-        <MudText Typo="Typo.h3">
-             @if(_dataLoaded)
-        {
-            <MudIcon Size="Size.Large" Icon="@Icons.Filled.Done" Color="Color.Success"></MudIcon>
-        }
-        1. Upload data:</MudText>
-      
-        <br/>
-        <MudText Typo="Typo.body1">Load data by uploading file...</MudText>
-        <InputFile id="fileInput" OnChange="@StartLoadingFiles" hidden multiple/>
-        <MudButton HtmlTag="label"
-                   Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   StartIcon="@Icons.Filled.CloudUpload"
-                   for="fileInput">
-            Upload Files
-        </MudButton>
-        <br/>
-        <MudText Typo="Typo.body1"> ...or by text:</MudText>
-        <MudTextField T="string" Label="Sequences in fasta format" Variant="Variant.Outlined" @bind-Value="@_inputText" Lines="15"/>
-        <br/>
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary" OnClick="@(() => OnRead(_inputText))">
-            Read text
-        </MudButton>
-    </MudPaper>
+    <FastaLoaderComponent Title="1.Upload first sequence" @bind-DataLoaded="_firstDataLoaded" @bind-FastaReader="_fastaReaderFirstSeq"/>
+    <FastaLoaderComponent Title="2.Upload second sequence" @bind-DataLoaded="_secondDataLoaded" @bind-FastaReader="_fastaReaderSecondSeq" />
+    <br/>
+@if (_firstDataLoaded && _secondDataLoaded)
+{
+    <MudGrid Spacing="@_gridSpacing" Justify="Justify.Center">
+        <MudItem>
+                <MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
+                    <MudListSubheader>
+                        List of sequences from first file
+                    </MudListSubheader>
+            @foreach (var seq in _fastaReaderFirstSeq.Sequences)
+            {
+                <div style="border-top: 2px solid rgba(6, 6, 6, 1);"></div>
+                @if (_choosenFirstSequence == seq.Header.ToString())
+                {
+                    <MudListItem Text="@seq.Header.ToString()" Icon="@Icons.Filled.Done" IconColor="Color.Success" OnClick="() => _choosenFirstSequence = _emptyString"/>
+                }
+                else
+                {
+                    <MudListItem Text="@seq.Header.ToString()" OnClick="() => _choosenFirstSequence = seq.Header.ToString()"/>
+                }
+              
+            }
+                  
+           
+        </MudList>
+        </MudItem>
+        <MudItem>
+           
+            <MudButton Style="position: relative;
+                              top: 50%;" Variant="Variant.Filled"
+                       Color="Color.Primary"> Align sequences</MudButton>
+        </MudItem>
+        <MudItem>
+
+                <MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
+            <MudListSubheader>
+                List of sequences from second file
+            </MudListSubheader>
+            @foreach (var seq in _fastaReaderSecondSeq.Sequences)
+            {
+                <div style="border-top: 2px solid rgba(6, 6, 6, 1);"></div>
+                @if (_choosenSecondSequence == seq.Header.ToString())
+                {
+                    <MudListItem Text="@seq.Header.ToString()" Icon="@Icons.Filled.Done" IconColor="Color.Success" OnClick="() => _choosenSecondSequence = _emptyString"/>
+                }
+                else
+                {
+                    <MudListItem Text="@seq.Header.ToString()" OnClick="() => _choosenSecondSequence = seq.Header.ToString()"/>
+                }
+              
+                
+            }
+
+        </MudList>
+        </MudItem>
+    </MudGrid>
+}
+    @*
     <MudStack>
-    @foreach( var seq in _fastaReader.Sequences)
-    {
-        <MudPaper Class="pa-4 mr-16"> @seq.Header.ToString() 
+        @if (_firstDataLoaded)
+        {
+            @foreach (var seq in _fastaReaderFirstSeq.Sequences)
+            {
+                <MudPaper Class="pa-4 mr-16"> @seq.Header.ToString()
 
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
-    
-            @if(_firstSeqHeader == seq.Header.ToString())
-                    {
-                         <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsFirstToCompare">Unmark first sequence
-             </MudButton>    
-                    }
-                     @if(_secondSeqHeader == seq.Header.ToString())
-                    {
-                         <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsSecondToCompare">Unmark second sequence
-             </MudButton>    
-                    }
-                    @if(_firstSeqHeader=="")
-                {
-                  <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsFirstToCompare(seq.Header.ToString()))">Mark as first
-             </MudButton>    
-                }
-               @if(_secondSeqHeader=="")
-                {
-              <MudButton Size="Size.Small"  OnClick="@(() => OnMarkSeqAsSecondToCompare(seq.Header.ToString()))">Mark as second
-             </MudButton> 
-                }
-                </MudButtonGroup>
-             </MudPaper>
+                    <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
 
-    }
+                        @if (_firstSeqHeader == seq.Header.ToString())
+                        {
+                            <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsFirstToCompare">Unmark first sequence
+                            </MudButton>
+                        }
+                        @if (_secondSeqHeader == seq.Header.ToString())
+                        {
+                            <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsSecondToCompare">Unmark second sequence
+                            </MudButton>
+                        }
+                        @if (_firstSeqHeader == "")
+                        {
+                            <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsFirstToCompare(seq.Header.ToString()))">Mark as first
+                            </MudButton>
+                        }
+                        @if (_secondSeqHeader == "")
+                        {
+                            <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsSecondToCompare(seq.Header.ToString()))">Mark as second
+                            </MudButton>
+                        }
+                    </MudButtonGroup>
+                </MudPaper>
+
+            }
+        }
+        
     </MudStack>
     @if(_firstSeqCheckBox && _secondSeqCheckBox)
     {
-        @*<MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateSequences"> Calculate</MudButton>
-  *@
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateSequences"> Calculate</MudButton>
+  
         }
-
+    *@
 
 </MudContainer>
 @code {
@@ -96,10 +132,16 @@
     private string _firstSeqHeader = "";
     private string _secondSeqHeader = "";
     private bool _isLoading = false;
-    private bool _dataLoaded = false;
-    private string _inputText = "";
-    private long maxFileSize = 1024 * 1024 * 15;
-    private FastaReader _fastaReader = new FastaReader();
+    private bool _firstDataLoaded = false;
+    private bool _secondDataLoaded = false;
+    private int _gridSpacing = 10;
+    private FastaReader _fastaReaderFirstSeq = new FastaReader();
+    private FastaReader _fastaReaderSecondSeq = new FastaReader();
+    private string _choosenFirstSequence;
+    private string _choosenSecondSequence;
+    private string _emptyString;
+    private string _colorStringPrimary = "background-color:"+Color.Primary.ToString()+";";
+    
 
     public async Task Calculate()
     {
@@ -125,32 +167,8 @@
         _secondSeqCheckBox = true;
         _secondSeqHeader = header;
     }
-    private void ReadFromText(string text)
-    {
-        _fastaReader.ReadMultipleFromString(text);
-        _isLoading = false;
-    }
-        private async Task OnRead(string text)
-    {
-        _isLoading = true;
-        await Task.Run(() => ReadFromText(text));
-    }
+   
 
-        private async Task StartLoadingFiles(InputFileChangeEventArgs e)
-    {
-        if (e.FileCount != 1) return;
-        if (!e.File.Name.EndsWith(".fasta")) return;
-        _isLoading = true;
-        await Task.Run(() => LoadFiles(e));
-
-    }
-    private async Task LoadFiles(InputFileChangeEventArgs e)
-    {
-        var tmp = e.File.OpenReadStream(maxFileSize);
-        StreamReader reader = new StreamReader(tmp);
-        string text = await reader.ReadToEndAsync();
-        _dataLoaded = _fastaReader.ReadMultipleFromString(text);
-        _isLoading = false;
-        await Task.Run(this.StateHasChanged);
-    }
+       
+   
 }
