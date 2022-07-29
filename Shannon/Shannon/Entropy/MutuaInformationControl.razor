@@ -100,18 +100,13 @@
         string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
       
         Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
-
-        //var na = new NeedlemanWunschAligner();
-       // var algorithm = new NUCmer( new MultiWaySuffixTree(seq));
-       var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
+        
+        var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
         var result=alt.Align(new List<ISequence>(){seq,seq1});
-       // var result =  na.Align(seq, seq1);
 
+        var res = result[0].Sequences[0].GetComplementedSequence();
         _flag = true;
-    // foreach (var res in result.First().PairwiseAlignedSequences)
-    // {
-    //     res.SecondSequence.Should().BeEquivalentTo(new Sequence(DnaAlphabet.Instance, "ATT----"));
-    // }
-    }  //
+    
+    }  
 
 }
