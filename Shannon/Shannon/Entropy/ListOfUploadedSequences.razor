@@ -2,7 +2,7 @@
 
 <MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
     <MudListSubheader>
-        List of sequences from second file
+        @Title
     </MudListSubheader>
     @foreach (var seq in FastaReader.Sequences)
     {
@@ -26,6 +26,8 @@
     private FastaReader _fastaReader;
     private string _selectedSequence;
 
+    [Parameter]
+    public string Title { get; set; }
     [Parameter]
     public FastaReader FastaReader
     {

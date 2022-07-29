@@ -9,6 +9,7 @@
 @using System.ComponentModel.Design
 @using Bio
 @using Bio.Algorithms.Alignment
+@using Bio.Algorithms.SuffixTree
 @using MudBlazor.Utilities
 @using Newtonsoft.Json
 @using Sequence = Xyaneon.Bioinformatics.FASTA.Sequence
@@ -44,6 +45,7 @@
     </MudGrid>
 }
 </MudContainer>
+@_flag
 @code {
     private bool _firstSeqCheckBox { get; set; } = false;
     private bool  _secondSeqCheckBox{ get; set; } = false;
@@ -59,7 +61,7 @@
     private string _choosenSecondSequence;
     private string _emptyString;
     private string _colorStringPrimary = "background-color:"+Color.Primary.ToString()+";";
-    
+    private bool _flag = false;
 
     public async Task Calculate()
     {
@@ -90,22 +92,26 @@
     private async Task AlignSequences()
     {
        var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
-        string seqString = sequenceFirst.Data.ToMultilineString();
-
+        string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
+      
         Bio.Sequence seq = new Bio.Sequence( DnaAlphabet.Instance,seqString);
 
         var sequenceSecond= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
-        string seqSecondString = sequenceSecond.Data.ToMultilineString();
+        string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
+      
         Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
 
-        var na = new NeedlemanWunschAligner();
+        //var na = new NeedlemanWunschAligner();
+       // var algorithm = new NUCmer( new MultiWaySuffixTree(seq));
+       var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
+        var result=alt.Align(new List<ISequence>(){seq,seq1});
+       // var result =  na.Align(seq, seq1);
 
-        var result =  na.Align(seq, seq1);
-
-       // foreach (var res in result.First().PairwiseAlignedSequences)
-       // {
-       //     res.SecondSequence.Should().BeEquivalentTo(new Sequence(DnaAlphabet.Instance, "ATT----"));
-       // }
+        _flag = true;
+    // foreach (var res in result.First().PairwiseAlignedSequences)
+    // {
+    //     res.SecondSequence.Should().BeEquivalentTo(new Sequence(DnaAlphabet.Instance, "ATT----"));
+    // }
     }  //
 
 }
