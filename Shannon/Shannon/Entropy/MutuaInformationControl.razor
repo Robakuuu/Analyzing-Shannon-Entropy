@@ -1,5 +1,4 @@
 ﻿@using MudBlazor
-@using Xyaneon.Bioinformatics.FASTA
 @using Xyaneon.Bioinformatics.FASTA.IO
 @using System.Diagnostics
 @using System.Runtime.CompilerServices
@@ -8,8 +7,11 @@
 @using Color = MudBlazor.Color
 @using System.ComponentModel
 @using System.ComponentModel.Design
+@using Bio
+@using Bio.Algorithms.Alignment
 @using MudBlazor.Utilities
 @using Newtonsoft.Json
+@using Sequence = Xyaneon.Bioinformatics.FASTA.Sequence
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
 
@@ -29,102 +31,18 @@
 {
     <MudGrid Spacing="@_gridSpacing" Justify="Justify.Center">
         <MudItem>
-                <MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
-                    <MudListSubheader>
-                        List of sequences from first file
-                    </MudListSubheader>
-            @foreach (var seq in _fastaReaderFirstSeq.Sequences)
-            {
-                <div style="border-top: 2px solid rgba(6, 6, 6, 1);"></div>
-                @if (_choosenFirstSequence == seq.Header.ToString())
-                {
-                    <MudListItem Text="@seq.Header.ToString()" Icon="@Icons.Filled.Done" IconColor="Color.Success" OnClick="() => _choosenFirstSequence = _emptyString"/>
-                }
-                else
-                {
-                    <MudListItem Text="@seq.Header.ToString()" OnClick="() => _choosenFirstSequence = seq.Header.ToString()"/>
-                }
-              
-            }
-                  
-           
-        </MudList>
+            <ListOfUploadedSequences Title="List of sequences from first file" @bind-FastaReader="_fastaReaderFirstSeq" @bind-SelectedSequence="_choosenFirstSequence"></ListOfUploadedSequences>
         </MudItem>
         <MudItem>
-           
-            <MudButton Style="position: relative;
+            <MudButton OnClick="AlignSequences" Style="position: relative;
                               top: 50%;" Variant="Variant.Filled"
                        Color="Color.Primary"> Align sequences</MudButton>
         </MudItem>
         <MudItem>
-
-                <MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
-            <MudListSubheader>
-                List of sequences from second file
-            </MudListSubheader>
-            @foreach (var seq in _fastaReaderSecondSeq.Sequences)
-            {
-                <div style="border-top: 2px solid rgba(6, 6, 6, 1);"></div>
-                @if (_choosenSecondSequence == seq.Header.ToString())
-                {
-                    <MudListItem Text="@seq.Header.ToString()" Icon="@Icons.Filled.Done" IconColor="Color.Success" OnClick="() => _choosenSecondSequence = _emptyString"/>
-                }
-                else
-                {
-                    <MudListItem Text="@seq.Header.ToString()" OnClick="() => _choosenSecondSequence = seq.Header.ToString()"/>
-                }
-              
-                
-            }
-
-        </MudList>
+            <ListOfUploadedSequences Title="List of sequences from second file" @bind-FastaReader="_fastaReaderSecondSeq" @bind-SelectedSequence="_choosenSecondSequence"></ListOfUploadedSequences>
         </MudItem>
     </MudGrid>
 }
-    @*
-    <MudStack>
-        @if (_firstDataLoaded)
-        {
-            @foreach (var seq in _fastaReaderFirstSeq.Sequences)
-            {
-                <MudPaper Class="pa-4 mr-16"> @seq.Header.ToString()
-
-                    <MudButtonGroup Color="Color.Primary" Variant="Variant.Text">
-
-                        @if (_firstSeqHeader == seq.Header.ToString())
-                        {
-                            <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsFirstToCompare">Unmark first sequence
-                            </MudButton>
-                        }
-                        @if (_secondSeqHeader == seq.Header.ToString())
-                        {
-                            <MudButton Size="Size.Small" OnClick="@OnUnMarkSeqAsSecondToCompare">Unmark second sequence
-                            </MudButton>
-                        }
-                        @if (_firstSeqHeader == "")
-                        {
-                            <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsFirstToCompare(seq.Header.ToString()))">Mark as first
-                            </MudButton>
-                        }
-                        @if (_secondSeqHeader == "")
-                        {
-                            <MudButton Size="Size.Small" OnClick="@(() => OnMarkSeqAsSecondToCompare(seq.Header.ToString()))">Mark as second
-                            </MudButton>
-                        }
-                    </MudButtonGroup>
-                </MudPaper>
-
-            }
-        }
-        
-    </MudStack>
-    @if(_firstSeqCheckBox && _secondSeqCheckBox)
-    {
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateSequences"> Calculate</MudButton>
-  
-        }
-    *@
-
 </MudContainer>
 @code {
     private bool _firstSeqCheckBox { get; set; } = false;
@@ -167,8 +85,27 @@
         _secondSeqCheckBox = true;
         _secondSeqHeader = header;
     }
-   
 
-       
-   
+
+    private async Task AlignSequences()
+    {
+       var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
+        string seqString = sequenceFirst.Data.ToMultilineString();
+
+        Bio.Sequence seq = new Bio.Sequence( DnaAlphabet.Instance,seqString);
+
+        var sequenceSecond= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
+        string seqSecondString = sequenceSecond.Data.ToMultilineString();
+        Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
+
+        var na = new NeedlemanWunschAligner();
+
+        var result =  na.Align(seq, seq1);
+
+       // foreach (var res in result.First().PairwiseAlignedSequences)
+       // {
+       //     res.SecondSequence.Should().BeEquivalentTo(new Sequence(DnaAlphabet.Instance, "ATT----"));
+       // }
+    }  //
+
 }

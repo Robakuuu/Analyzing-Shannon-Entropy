@@ -1,0 +1,60 @@
+﻿@using MudBlazor
+
+<MudList Style="max-width: 150px; box-shadow: -3px 8px 31px -20px rgba(6, 6, 6, 1); " Clickable="true">
+    <MudListSubheader>
+        List of sequences from second file
+    </MudListSubheader>
+    @foreach (var seq in FastaReader.Sequences)
+    {
+        <div style="border-top: 2px solid rgba(6, 6, 6, 1);"></div>
+        @if (SelectedSequence == seq.Header.ToString())
+        {
+            <MudListItem Text="@seq.Header.ToString()" Icon="@Icons.Filled.Done" IconColor="Color.Success" OnClick="() => SelectedSequence = _emptyString"/>
+        }
+        else
+        {
+            <MudListItem Text="@seq.Header.ToString()" OnClick="() => SelectedSequence = seq.Header.ToString()"/>
+        }
+              
+                
+    }
+
+</MudList>
+
+@code {
+
+    private FastaReader _fastaReader;
+    private string _selectedSequence;
+
+    [Parameter]
+    public FastaReader FastaReader
+    {
+        get => _fastaReader;
+        set
+        {
+            if (_fastaReader == value) return;
+            _fastaReader = value;
+            FastaReaderChanged.InvokeAsync(value);
+        }
+    }
+
+    [Parameter]
+    public EventCallback<FastaReader> FastaReaderChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedSequenceChanged { get; set; }
+
+   
+    [Parameter]
+    public string SelectedSequence
+    {
+        get => _selectedSequence;
+        set
+        {
+            if (_selectedSequence == value) return;
+            _selectedSequence = value;
+            SelectedSequenceChanged.InvokeAsync(value);
+        }
+    }
+
+    private string _emptyString = "";
+}
