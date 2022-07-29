@@ -10,6 +10,7 @@
 @using Bio
 @using Bio.Algorithms.Alignment
 @using Bio.Algorithms.SuffixTree
+@using Blazorise.Extensions
 @using MudBlazor.Utilities
 @using Newtonsoft.Json
 @using Sequence = Xyaneon.Bioinformatics.FASTA.Sequence
@@ -88,9 +89,13 @@
         _secondSeqHeader = header;
     }
 
-
+    public async Task ShowMessage(string message)
+    {
+        Snackbar.Add(message);
+    }
     private async Task AlignSequences()
     {
+        await ShowMessage("Starting alignment...");
        var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
         string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
       
@@ -102,11 +107,15 @@
         Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
         
         var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
-        var result=alt.Align(new List<ISequence>(){seq,seq1});
-
-        var res = result[0].Sequences[0].GetComplementedSequence();
+       var result= await Task.Run(()=>alt.Align(new List<ISequence>() { seq, seq1 }));
+        //var result=alt.Align(new List<ISequence>(){seq,seq1});
+        if (!result.IsNullOrEmpty())
+        {
+            await ShowMessage("Alignment sucessfully completed!");
+        }
+        //var res = result[0].Sequences[0].GetComplementedSequence();
         _flag = true;
-    
+        
     }  
 
 }
