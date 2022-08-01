@@ -1,12 +1,85 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ShannonEntropyCal
 {
-
-    public class MutualInformationCal
+    public record PairedEvent
     {
+        public Char FirstSign { get; set; }
+        public Char SecondSign { get; set; }
+    }
+public class MutualInformationCal
+    {
+        
+        public double CalculateMI2(string seq1, string seq2)
+        {
+            var alphabetA = seq1.Distinct().ToList();
+            var alphabetB = seq2.Distinct().ToList();
+
+            ConcurrentDictionary<char, double> probabiltyForA = new ConcurrentDictionary<char, double>();
+            foreach (var sign in alphabetA)
+            {
+                double count = 0;
+                foreach (var x in seq1)
+                {
+                    if (x == sign) count++;
+                }
+
+                probabiltyForA.TryAdd(sign, count / seq1.Length);
+            }
+
+            ConcurrentDictionary<char, double> probabiltyForB = new ConcurrentDictionary<char, double>();
+            foreach (var sign in alphabetB)
+            {
+                double count = 0;
+                foreach (var x in seq2)
+                {
+                    if (x == sign) count++;
+                }
+
+                probabiltyForB.TryAdd(sign, count / seq2.Length);
+            }
+
+            ConcurrentDictionary<PairedEvent, double> probabiltyForAwithB = new ConcurrentDictionary<PairedEvent, double>();
+            foreach (var firstSign in alphabetA)
+            {
+                double count = 0;
+                foreach (var secondSign in alphabetB)
+                {
+                    for (int index = 0; index < seq1.Length; index++)
+                    {
+                        if(seq1[index] == firstSign && seq2[index]==secondSign) count++;
+                    }
+                    probabiltyForAwithB.TryAdd(new PairedEvent(){ FirstSign = firstSign,SecondSign = secondSign}, count / seq1.Length);
+                }
+            }
+
+
+
+            double sum = 0.0;
+
+            foreach (var pairs in probabiltyForAwithB)
+            {
+                double pXY = Math.Truncate(pairs.Value * 1000) / 1000;
+                double pX = Math.Truncate(probabiltyForA[pairs.Key.FirstSign] * 1000) /
+                            1000;
+                double pY = Math.Truncate(probabiltyForB[pairs.Key.SecondSign] * 1000) /
+                            1000;
+                if (pY != 0 && pX != 0 && pXY != 0)
+                {
+                    double result = pXY * Math.Log((pXY / (pX * pY)), 2);
+
+                    sum += result;
+                }
+               
+            }
+
+            return sum;
+
+        }
+
         public double CalculateMI(string seq1, string seq2)
         {
             List<string> pairs = new List<string>();

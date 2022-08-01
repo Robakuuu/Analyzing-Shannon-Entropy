@@ -33,10 +33,20 @@ namespace Shannon.Tests
 
             MutualInformationCal sut = new MutualInformationCal();
 
-            var expectedResult = 0.693;
-            var result = sut.CalculateMI("AAAT", "ATTT");
+            var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
 
-            result.Should().BeLessThan(expectedResult + 0.05).And.BeGreaterThan(expectedResult - 0.05);
+            var c = 2;
+            // AAAAAAAA AAAAAAAA 0
+            // AAAAAAAA AAAAAAAT 3
+            // XXXXXXXX AAAAAAAA 0
+            // XAAAAAAA XAAAAAAA 0.567
+            // XAAAAAAA XXAAAAAA 0.564
+            // XXAAAAAA XXAAAAAA 0.915
+            // XXXAAAAA XXAAAAAA 0.768
+            // XXXXAAAA XXAAAAAA 0.665
+            // XXXXXAAA XXAAAAAA 0.584
+            // XXXXXXAA XXAAAAAA 0.518
+
             //           print(sklearn.metrics.mutual_info_score(["0.75", "0.25"],["0.25", "0.75"]))
             // A-A  1/3 log2 1/3/(3/4*1/4) = 0.33 log2 0.33 / 0.1875=0.33 log2 1.76= 0.33*0.82=0.2706
             // A-T  2/3 log2 2/3/(0.75 * 0.75) = 0.66 log2 0.66/0.5625= 0.66 log2 1.173=0.66 * 0.23=0.1518
@@ -47,7 +57,7 @@ namespace Shannon.Tests
 
             var expectedResult2 = 1.039;
       
-            var result2 = sut.CalculateMI("AAAATTCCCG", "ATTTTTCCCG");
+            var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
 
             result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
             //
