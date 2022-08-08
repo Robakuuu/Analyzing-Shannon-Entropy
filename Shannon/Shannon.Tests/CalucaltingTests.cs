@@ -28,6 +28,15 @@ namespace Shannon.Tests
         }
 
         [Fact]
+        public void ConditionalMutualInformation()
+        {
+            MutualConditionalInformationCal sut = new MutualConditionalInformationCal();
+            var result = sut.MutualConditionaInformation("XXXAAAAA", "XAAAAAAA");
+
+            var c = 2;
+        }
+
+        [Fact]
         public void MutualInformation()
         {
 
@@ -39,6 +48,7 @@ namespace Shannon.Tests
             // AAAAAAAA AAAAAAAA 0
             // AAAAAAAA AAAAAAAT 3
             // XXXXXXXX AAAAAAAA 0
+
             // XAAAAAAA XAAAAAAA 0.567
             // XAAAAAAA XXAAAAAA 0.564
             // XXAAAAAA XXAAAAAA 0.915
