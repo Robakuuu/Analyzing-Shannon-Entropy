@@ -31,18 +31,55 @@ namespace Shannon.Tests
         public void ConditionalMutualInformation()
         {
             MutualConditionalInformationCal sut = new MutualConditionalInformationCal();
-            var result = sut.MutualConditionaInformation("XXXAAAAA", "XAAAAAAA");
+            var result = sut.MutualConditionaInformation2("XXXA", "XAAA", "XXAA");
+            //-0.353
+            //-0.311
+            //0
+            
+            // AAAAAAAA AAAAAAAA 0
+            // AAAAAAAA AAAAAAAT 0.16856
+            // XXXXXXXX AAAAAAAA 0
 
+            // XAAAAAAA XAAAAAAA 0
+            // XAAAAAAA XXAAAAAA -0.166
+            // XXAAAAAA XXAAAAAA 0.915
+            // XXXAAAAA XXAAAAAA 0.768
+            // XXXXAAAA XXAAAAAA 0.665
+            // XXXXXAAA XXAAAAAA 0.584
+            // XXXXXXAA XXAAAAAA 0.518
             var c = 2;
         }
 
+  
         [Fact]
         public void MutualInformation()
         {
 
             MutualInformationCal sut = new MutualInformationCal();
+            EntropyCal entorpy = new EntropyCal();
 
-            var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
+            //var resHXY = entorpy.EntropyValue("XAAAAAAA");
+            //double HXcommaY = entorpy.EntropyValue("XXAAAAAA");
+            //double HX = CalculateHVar(4.0/8.0);
+            //double HY = CalculateHVar(4.0/8.0);
+            //double HYcommaX = HXcommaY - HX;
+            //
+            //double HXcommaY2 = entorpy.EntropyValue("XAAAAAAA");
+            //double HX2 = CalculateHVar(1.0/8.0);
+            //double HY2 = CalculateHVar(7.0/8.0);
+            //double HYcommaX2 = HXcommaY2 - HX2;
+            //
+            //double test = HXcommaY - (HYcommaX - HY) - (HXcommaY - HX);
+            //double test2 = HXcommaY2 - (HYcommaX2 - HY2) - (HXcommaY2 - HX2);
+            // var resultDiffWay = HX + HY - resHXY;
+
+            //  X A
+            //X 1/5 1/5
+            //A 0 3/5
+            
+
+            var result = sut.CalculateMI2("AATCG", "GAATC");
+           // var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
 
             var c = 2;
             // AAAAAAAA AAAAAAAA 0
