@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using FluentAssertions;
 using ShannonEntropyCal;
 
@@ -10,7 +11,7 @@ namespace Shannon.Tests
         {
             EntropyCal sut = new EntropyCal();
 
-            var result= sut.EntropyValue("AAAA");
+            var result = sut.EntropyValue("AAAA");
             result.Should().Be(0.00);
 
             var result2 = sut.EntropyValue("ATCG");
@@ -27,61 +28,89 @@ namespace Shannon.Tests
 
         }
 
+        public class TestedSequences
+        {
+            public string FirstSeq { get; set; }
+            public string SecondSeq { get; set; }
+            public string ThirdSeq { get; set; }
+
+            public TestedSequences()
+            {
+                FirstSeq = "";
+                SecondSeq = "";
+                ThirdSeq = "";
+            }
+        }
         [Fact]
         public void ConditionalMutualInformation()
         {
             MutualConditionalInformationCal sut = new MutualConditionalInformationCal();
-            var result = sut.MutualConditionaInformation2("XXXA", "XAAA", "XXAA");
-            //-0.353
-            //-0.311
-            //0
-            
-            // AAAAAAAA AAAAAAAA 0
-            // AAAAAAAA AAAAAAAT 0.16856
-            // XXXXXXXX AAAAAAAA 0
 
-            // XAAAAAAA XAAAAAAA 0
-            // XAAAAAAA XXAAAAAA -0.166
-            // XXAAAAAA XXAAAAAA 0.915
-            // XXXAAAAA XXAAAAAA 0.768
-            // XXXXAAAA XXAAAAAA 0.665
-            // XXXXXAAA XXAAAAAA 0.584
-            // XXXXXXAA XXAAAAAA 0.518
-            var c = 2;
+            ConcurrentDictionary<TestedSequences, double> results = new ConcurrentDictionary<TestedSequences, double>();
+            List<char> signs = new List<char>() { 'A', 'T', 'C', 'G' };
+            for (int counter = 0; counter < 1000; counter++)
+            {
+                Random r = new Random();
+                int rInt = r.Next(5, 100);
+
+                var ts = new TestedSequences();
+
+                for (int helper = 0; helper < rInt; helper++)
+                {
+                    int signInt = r.Next(0, 4);
+                    ts.FirstSeq+=signs[signInt];
+
+                    signInt = r.Next(0, 4);
+                    ts.SecondSeq+=signs[signInt];
+
+                    signInt = r.Next(0, 4);
+                    ts.ThirdSeq+=signs[signInt];
+                }
+
+                var result = sut.MutualConditionaInformation2(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                result.Should().BeGreaterThan(0.0);
+                results.TryAdd(ts, result);
+
+            }
+            
         }
 
-  
+
         [Fact]
         public void MutualInformation()
         {
 
+
+
             MutualInformationCal sut = new MutualInformationCal();
-            EntropyCal entorpy = new EntropyCal();
 
-            //var resHXY = entorpy.EntropyValue("XAAAAAAA");
-            //double HXcommaY = entorpy.EntropyValue("XXAAAAAA");
-            //double HX = CalculateHVar(4.0/8.0);
-            //double HY = CalculateHVar(4.0/8.0);
-            //double HYcommaX = HXcommaY - HX;
-            //
-            //double HXcommaY2 = entorpy.EntropyValue("XAAAAAAA");
-            //double HX2 = CalculateHVar(1.0/8.0);
-            //double HY2 = CalculateHVar(7.0/8.0);
-            //double HYcommaX2 = HXcommaY2 - HX2;
-            //
-            //double test = HXcommaY - (HYcommaX - HY) - (HXcommaY - HX);
-            //double test2 = HXcommaY2 - (HYcommaX2 - HY2) - (HXcommaY2 - HX2);
-            // var resultDiffWay = HX + HY - resHXY;
+            ConcurrentDictionary<TestedSequences, double> results = new ConcurrentDictionary<TestedSequences, double>();
+            List<char> signs = new List<char>() { 'A', 'T', 'C', 'G' };
+            for (int counter = 0; counter < 1000; counter++)
+            {
+                Random r = new Random();
+                int rInt = r.Next(5, 100);
 
-            //  X A
-            //X 1/5 1/5
-            //A 0 3/5
-            
+                var ts = new TestedSequences();
 
-            var result = sut.CalculateMI2("AATCG", "GAATC");
-           // var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
+                for (int helper = 0; helper < rInt; helper++)
+                {
+                    int signInt = r.Next(0, 4);
+                    ts.FirstSeq+=signs[signInt];
 
-            var c = 2;
+                    signInt = r.Next(0, 4);
+                    ts.SecondSeq+=signs[signInt];
+                }
+
+                var result = sut.CalculateMI2(ts.FirstSeq, ts.SecondSeq);
+                result.Should().BeGreaterOrEqualTo(0.0);
+                results.TryAdd(ts, result);
+
+            }
+
+// var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
+
+      
             // AAAAAAAA AAAAAAAA 0
             // AAAAAAAA AAAAAAAT 3
             // XXXXXXXX AAAAAAAA 0
@@ -102,22 +131,22 @@ namespace Shannon.Tests
             // ATTT
 
 
-            var expectedResult2 = 1.039;
-      
-            var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
+         // var expectedResult2 = 1.039;
+         //
+         // var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
+         //
+         // result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
+         // //
+         // //A-A 0.25 log2 0.25 / (0.4* 0.1) = 0.25 * 2.6438 =  0.66
+         // //A-T 0.75 log2 0.75 / (0.4 * 0.5) = 0.75 log2 3.75= 0.75 * 1.906 = 1.4295
+         // //T-T 0.4 log2 0.4 / (0.2*0.5) = 0.4 log2 4 = 0.8
+         // //
+         // var expectedResult3 = 0.215;
+         // var result3 = sut.CalculateMI("AAATA", "ATCGG");
+         //
+         // result3.Should().BeLessThan(expectedResult3 + 0.05).And.BeGreaterThan(expectedResult3 - 0.05);
 
-            result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
-            //
-            //A-A 0.25 log2 0.25 / (0.4* 0.1) = 0.25 * 2.6438 =  0.66
-            //A-T 0.75 log2 0.75 / (0.4 * 0.5) = 0.75 log2 3.75= 0.75 * 1.906 = 1.4295
-            //T-T 0.4 log2 0.4 / (0.2*0.5) = 0.4 log2 4 = 0.8
-            //
-            var expectedResult3 = 0.215;
-            var result3 = sut.CalculateMI("AAATA", "ATCGG");
 
-            result3.Should().BeLessThan(expectedResult3 + 0.05).And.BeGreaterThan(expectedResult3 - 0.05);
-
-            
         }
     }
 }

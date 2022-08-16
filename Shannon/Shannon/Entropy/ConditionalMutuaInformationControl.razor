@@ -19,7 +19,7 @@
 @inject ISnackbar Snackbar
 
 
-@page "/mi"
+@page "/cmi"
 
 <MudSnackbarProvider/>
 <MudContainer>
@@ -30,15 +30,22 @@
 
     <FastaLoaderComponent Title="1.Upload first sequence" @bind-DataLoaded="_firstDataLoaded" @bind-FastaReader="_fastaReaderFirstSeq"/>
     <FastaLoaderComponent Title="2.Upload second sequence" @bind-DataLoaded="_secondDataLoaded" @bind-FastaReader="_fastaReaderSecondSeq" />
+    <FastaLoaderComponent Title="3.Upload second sequence" @bind-DataLoaded="_thirdDataLoaded" @bind-FastaReader="_fastaReaderThirdSeq" />
     <br/>
-@if (_firstDataLoaded && _secondDataLoaded)
+    @if (_firstDataLoaded && _secondDataLoaded && _thirdDataLoaded)
 {
     <MudGrid Spacing="@_gridSpacing" Justify="Justify.Center">
         <MudItem>
             <ListOfUploadedSequences Title="List of sequences from first file" @bind-FastaReader="_fastaReaderFirstSeq" @bind-SelectedSequence="_choosenFirstSequence"></ListOfUploadedSequences>
         </MudItem>
         <MudItem>
-            @if (_choosenSecondSequence == "" || _choosenFirstSequence == "")
+            <ListOfUploadedSequences Title="List of sequences from second file" @bind-FastaReader="_fastaReaderSecondSeq" @bind-SelectedSequence="_choosenSecondSequence"></ListOfUploadedSequences>
+        </MudItem>
+        <MudItem>
+            <ListOfUploadedSequences Title="List of sequences from third file" @bind-FastaReader="_fastaReaderThirdSeq" @bind-SelectedSequence="_choosenThirdSequence"></ListOfUploadedSequences>
+        </MudItem>
+        <MudItem>
+                @if (_choosenSecondSequence == "" || _choosenFirstSequence == "" || _choosenThirdSequence == "")
             {
                 <MudButton Disabled="true" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                            Color="Color.Transparent"> Align sequences</MudButton>
@@ -49,9 +56,6 @@
                            Color="Color.Primary"> Align sequences</MudButton>
             }
 
-        </MudItem>
-        <MudItem>
-            <ListOfUploadedSequences Title="List of sequences from second file" @bind-FastaReader="_fastaReaderSecondSeq" @bind-SelectedSequence="_choosenSecondSequence"></ListOfUploadedSequences>
         </MudItem>
     </MudGrid>
     <MudGrid Spacing="@_gridSpacing" Justify="Justify.Center">
@@ -89,15 +93,19 @@
     private bool _isLoading = false;
     private bool _firstDataLoaded = false;
     private bool _secondDataLoaded = false;
+    private bool _thirdDataLoaded = false;
     private int _gridSpacing = 10;
     private int _subsequenceLength = 18;
     private FastaReader _fastaReaderFirstSeq = new FastaReader();
     private FastaReader _fastaReaderSecondSeq = new FastaReader();
+    private FastaReader _fastaReaderThirdSeq = new FastaReader();
     private string _choosenFirstSequence="";
     private string _choosenSecondSequence="";
+    private string _choosenThirdSequence="";
     private string _emptyString;
     private string _alignedFirstSequence="";
     private string _alignedSecondtSequence="";
+    private string _alignedThirdSequence="";
     private List<double> _mutualInformationResult= new List<double>();
     List<EntropyControl.ChartData> lineChart = new List<EntropyControl.ChartData>();
     private EntropyControl.CurrentSequencesOnChart _chartSeqence = new EntropyControl.CurrentSequencesOnChart();
@@ -141,48 +149,54 @@
     private async Task AlignSequences()
     {
         await OnAlignStarted();
-        var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
-        string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
+        _alignedFirstSequence = _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence).Data.ToMultilineString();
+       
 
-        Bio.Sequence seq = new Bio.Sequence( DnaAlphabet.Instance,seqString);
+        _alignedSecondtSequence = _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence).Data.ToMultilineString();
+      
+        _alignedThirdSequence = _fastaReaderThirdSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenThirdSequence).Data.ToMultilineString();
+       
 
-        var sequenceSecond= _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence);
-        string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
-
-        Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
-
-        var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
-        var result= await Task.Run(()=>alt.Align(new List<ISequence>() { seq, seq1 }));
-
-
-        //var result=alt.Align(new List<ISequence>(){seq,seq1});
-        if (!result.IsNullOrEmpty())
-        {
-            await ShowMessage("Alignment sucessfully completed!");
-
-            string? bestFirstSeq = "";
-            string? bestSecondSeq = "";
-            long score = -1;
-            foreach (IPairwiseSequenceAlignment seqAlignment in result)
-            {
-                foreach (PairwiseAlignedSequence alignedSeq in seqAlignment)
-                {
-                    if (score < alignedSeq.Score)
-                    {
-                        bestFirstSeq=alignedSeq.FirstSequence.ConvertToString();
-                        bestSecondSeq=alignedSeq.SecondSequence.ConvertToString();
-                        score = alignedSeq.Score;
-                    }
-                }
-            }
-            _alignedFirstSequence = bestFirstSeq;
-            _alignedSecondtSequence = bestSecondSeq;
-        }
-        else
-        {
-            await ShowMessage("Alignment failed!");
-
-        }
+       // var alt = new Bio.Algorithms.Alignment.MultiSequenceAlignment(new List<ISequence>() { seq, seq1, seq2 });
+       // Bio.Algorithms.Alignment.NUCmer nucmer = new NUCmer(seq);
+       // var delta1=nucmer.GetDeltaAlignments(seq1);
+       // var delta2 = nucmer.GetDeltaAlignments(seq2);
+        
+       //var result= await Task.Run(()=>alt.Align(new List<ISequence>() { seq, seq1,seq2 }));
+       //
+       //
+       //
+       ////var result=alt.Align(new List<ISequence>(){seq,seq1});
+       //if (!result.IsNullOrEmpty())
+       //{
+       //   
+       //
+       //    string? bestFirstSeq = "";
+       //    string? bestSecondSeq = "";
+       //    long score = -1;
+       //    foreach (IPairwiseSequenceAlignment seqAlignment in result)
+       //    {
+       //        foreach (PairwiseAlignedSequence alignedSeq in seqAlignment)
+       //        {
+       //            if (score < alignedSeq.Score)
+       //            {
+       //                bestFirstSeq=alignedSeq.FirstSequence.ConvertToString();
+       //                bestSecondSeq=alignedSeq.SecondSequence.ConvertToString();
+       //                score = alignedSeq.Score;
+       //            }
+       //        }
+       //    }
+       //    _alignedFirstSequence = bestFirstSeq;
+       //    _alignedSecondtSequence = bestSecondSeq;
+       //
+       //
+       //    await ShowMessage("Alignment sucessfully completed!");
+       //}
+       //else
+       //{
+       //    await ShowMessage("Alignment failed!");
+       //
+       //}
         //var res = result[0].Sequences[0].GetComplementedSequence();
        
         
@@ -192,7 +206,7 @@
     {
         await Task.Run(()=>ShowMessage("Starting calculations..."));
       
-        var seq = CalculateMutualInformation().Result;
+        var seq = CalculateConditionalMutualInformation().Result;
         _chartSeqence = new EntropyControl.CurrentSequencesOnChart() { name = seq.Name, seq = seq };
         await Task.Run(HandleRedraw);
     }
@@ -243,13 +257,13 @@
         StateHasChanged();
 
     }
-    private async Task<SequenceEntropy> CalculateMutualInformation()
+    private async Task<SequenceEntropy> CalculateConditionalMutualInformation()
     {
-        MutualInformationCal cal = new MutualInformationCal();
+        MutualConditionalInformationCal cal = new MutualConditionalInformationCal();
         _mutualInformationResult = new List<double>();
         for (int index=0; (index+_subsequenceLength-1)<_alignedFirstSequence.Length;index++)
         {
-            _mutualInformationResult.Add(cal.CalculateMI2(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength)));
+            _mutualInformationResult.Add(cal.MutualConditionaInformation2(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index,_subsequenceLength)));
         }
         SequenceEntropy seq = new SequenceEntropy()
         {

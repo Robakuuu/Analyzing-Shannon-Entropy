@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using static MudBlazor.CategoryTypes;
 
 namespace ShannonEntropyCal
 {
@@ -21,83 +22,68 @@ namespace ShannonEntropyCal
     {
         public double MutualConditionaInformation2(string seq1, string seq2, string seq3)
         {
-            var alphabetA = seq1.Distinct().ToList();
-            var alphabetB = seq2.Distinct().ToList();
-            var alphabetC = seq3.Distinct().ToList();
+            var alphabetX = seq1.Distinct().ToList();
+            var alphabetY = seq2.Distinct().ToList();
+            var alphabetZ = seq3.Distinct().ToList();
 
-
-
-
-
-            ConcurrentDictionary<char, double> probabiltyForA = new ConcurrentDictionary<char, double>();
-            foreach (var sign in alphabetA)
-            {
-                double count = 0;
-                foreach (var x in seq1)
-                {
-                    if (x == sign) count++;
-                }
-
-                probabiltyForA.TryAdd(sign, count / seq1.Length);
-            }
-
-            ConcurrentDictionary<char, double> probabiltyForB = new ConcurrentDictionary<char, double>();
-            foreach (var sign in alphabetB)
-            {
-                double count = 0;
-                foreach (var x in seq2)
-                {
-                    if (x == sign) count++;
-                }
-
-                probabiltyForB.TryAdd(sign, count / seq2.Length);
-            }
-
-            ConcurrentDictionary<char, double> probabiltyForC = new ConcurrentDictionary<char, double>();
-            foreach (var sign in alphabetC)
+            ConcurrentDictionary<char, double> probabiltyForZ = new ConcurrentDictionary<char, double>();
+            foreach (var sign in alphabetZ)
             {
                 double count = 0;
                 foreach (var x in seq3)
                 {
                     if (x == sign) count++;
                 }
-
-                probabiltyForC.TryAdd(sign, count / seq3.Length);
+           
+                if (count != 0)
+                {
+                    probabiltyForZ.TryAdd(sign, count / seq3.Length);
+                }
             }
-
-            ConcurrentDictionary<PairedEvent, double> probabiltyForAwithC = new ConcurrentDictionary<PairedEvent, double>();
-            foreach (var firstSign in alphabetA)
+           
+            ConcurrentDictionary<PairedEvent, double> probabiltyForXwithZ = new ConcurrentDictionary<PairedEvent, double>();
+            foreach (var firstSign in alphabetX)
             {
                 double count = 0;
-                foreach (var secondSign in alphabetC)
+                foreach (var secondSign in alphabetZ)
                 {
                     for (int index = 0; index < seq1.Length; index++)
                     {
                         if (seq1[index] == firstSign && seq3[index]==secondSign) count++;
                     }
-                    probabiltyForAwithC.TryAdd(new PairedEvent() { FirstSign = firstSign, SecondSign = secondSign }, count / seq1.Length);
+           
+                    if (count != 0)
+                    {
+                        probabiltyForXwithZ.TryAdd(new PairedEvent() {FirstSign = firstSign, SecondSign = secondSign},
+                            count / seq1.Length);
+                    }
                 }
             }
-            ConcurrentDictionary<PairedEvent, double> probabiltyForBwithC = new ConcurrentDictionary<PairedEvent, double>();
-            foreach (var firstSign in alphabetB)
+            ConcurrentDictionary<PairedEvent, double> probabiltyForYwithZ = new ConcurrentDictionary<PairedEvent, double>();
+            foreach (var firstSign in alphabetY)
             {
                 double count = 0;
-                foreach (var secondSign in alphabetC)
+                foreach (var secondSign in alphabetZ)
                 {
                     for (int index = 0; index < seq1.Length; index++)
                     {
                         if (seq1[index] == firstSign && seq3[index]==secondSign) count++;
                     }
-                    probabiltyForBwithC.TryAdd(new PairedEvent() { FirstSign = firstSign, SecondSign = secondSign }, count / seq1.Length);
+           
+                    if (count != 0)
+                    {
+                        probabiltyForYwithZ.TryAdd(new PairedEvent() {FirstSign = firstSign, SecondSign = secondSign},
+                            count / seq1.Length);
+                    }
                 }
             }
-            ConcurrentDictionary<TripledEvent, double> probabiltyForAwithBwithC = new ConcurrentDictionary<TripledEvent, double>();
-            foreach (var firstSign in alphabetA)
+            ConcurrentDictionary<TripledEvent, double> probabiltyForXwithYwithZ = new ConcurrentDictionary<TripledEvent, double>();
+            foreach (var firstSign in alphabetX)
             {
 
-                foreach (var secondSign in alphabetB)
+                foreach (var secondSign in alphabetY)
                 {
-                    foreach (var thirdSign in alphabetC)
+                    foreach (var thirdSign in alphabetZ)
                     {
                         double count = 0;
                         for (int index = 0; index < seq1.Length; index++)
@@ -108,153 +94,80 @@ namespace ShannonEntropyCal
                                 count++;
                             }
                         }
-                        probabiltyForAwithBwithC.TryAdd(
-                            new TripledEvent()
-                            { FirstSign = firstSign, SecondSign = secondSign, ThirdSign = thirdSign },
-                            count / seq1.Length);
-                    }
-                }
-            }
 
-            double sum = 0.0;
-            foreach (var triplets in probabiltyForAwithBwithC)
-            {
-                double pZ = Math.Truncate(probabiltyForC[triplets.Key.ThirdSign] * 1000) /
-                            1000;
-                double pXYZ = Math.Truncate(triplets.Value * 1000) / 1000;
-                double pXZ = Math.Truncate(probabiltyForAwithC[new PairedEvent() { FirstSign = triplets.Key.FirstSign, SecondSign = triplets.Key.ThirdSign }] * 1000) /
-                            1000;
-                double pYZ = Math.Truncate(probabiltyForBwithC[new PairedEvent() { FirstSign = triplets.Key.SecondSign, SecondSign = triplets.Key.ThirdSign }] * 1000) /
-                            1000;
-                if (pZ != 0 && pXZ != 0 && pYZ != 0 && pXYZ!=0)
-                {
-                    double result = pXYZ * Math.Log(((pZ*pXYZ) / (pXZ * pYZ)), 2);
-
-                    sum += result;
-                }
-            }
-
-            return sum;
-
-        }
-        public double MutualConditionaInformation(string seq1, string seq2)
-        {
-            var alphabetA = seq1.Distinct().ToList();
-            var alphabetC = alphabetA;
-            var alphabetB = seq2.Distinct().ToList();
-
-            ConcurrentDictionary<char, double> probabiltyForA = new ConcurrentDictionary<char, double>();
-            foreach (var sign in alphabetA)
-            {
-                double count = 0;
-                foreach (var x in seq1)
-                {
-                    if (x == sign) count++;
-                }
-
-                probabiltyForA.TryAdd(sign, count / seq1.Length);
-            }
-
-            alphabetC = alphabetA;
-            ConcurrentDictionary<char, double> probabiltyForC = probabiltyForA;
-
-            ConcurrentDictionary<char, double> probabiltyForB = new ConcurrentDictionary<char, double>();
-            foreach (var sign in alphabetB)
-            {
-                double count = 0;
-                foreach (var x in seq2)
-                {
-                    if (x == sign) count++;
-                }
-
-                probabiltyForB.TryAdd(sign, count / seq2.Length);
-            }
-           
-            ConcurrentDictionary<PairedEvent, double> probabiltyForAwithC = new ConcurrentDictionary<PairedEvent, double>();
-            foreach (var firstSign in alphabetA)
-            {
-                double count = 0;
-                foreach (var secondSign in alphabetC)
-                {
-                    for (int index = 0; index < seq1.Length; index++)
-                    {
-                        if (seq1[index] == firstSign && seq2[index]==secondSign) count++;
-                    }
-                    probabiltyForAwithC.TryAdd(new PairedEvent() { FirstSign = firstSign, SecondSign = secondSign }, count / seq1.Length);
-                }
-            }
-            ConcurrentDictionary<PairedEvent, double> probabiltyForBwithC = new ConcurrentDictionary<PairedEvent, double>();
-            foreach (var firstSign in alphabetB)
-            {
-                double count = 0;
-                foreach (var secondSign in alphabetC)
-                {
-                    for (int index = 0; index < seq1.Length; index++)
-                    {
-                        if (seq1[index] == firstSign && seq2[index]==secondSign) count++;
-                    }
-                    probabiltyForBwithC.TryAdd(new PairedEvent() { FirstSign = firstSign, SecondSign = secondSign }, count / seq1.Length);
-                }
-            }
-            ConcurrentDictionary<TripledEvent, double> probabiltyForAwithBwithC = new ConcurrentDictionary<TripledEvent, double>();
-            foreach (var firstSign in alphabetA)
-            {
-               
-                foreach (var secondSign in alphabetB)
-                {
-                    foreach (var thirdSign in alphabetC)
-                    {
-                        double count = 0;
-                        for (int index = 0; index < seq1.Length; index++)
+                        if (count != 0)
                         {
-
-                            if (seq1[index] == firstSign && seq2[index] == secondSign &&
-                                (seq1[index] == thirdSign || seq2[index] == thirdSign))
-                            {
-                                count++;
-                            }
+                            probabiltyForXwithYwithZ.TryAdd(
+                                new TripledEvent()
+                                    { FirstSign = firstSign, SecondSign = secondSign, ThirdSign = thirdSign },
+                                count / seq1.Length);
                         }
-                        probabiltyForAwithBwithC.TryAdd(
-                            new TripledEvent()
-                                { FirstSign = firstSign, SecondSign = secondSign, ThirdSign = thirdSign },
-                            count / seq1.Length);
+                        
                     }
                 }
             }
 
-            double sum = 0.0;
-            foreach (var triplets in probabiltyForAwithBwithC)
-            {
-                double pZ = Math.Truncate(probabiltyForC[triplets.Key.ThirdSign] * 1000) /
-                            1000;
-                double pXYZ = Math.Truncate(triplets.Value * 1000) / 1000;
-                double pXZ = Math.Truncate(probabiltyForAwithC[new PairedEvent(){FirstSign = triplets.Key.FirstSign ,SecondSign = triplets.Key.ThirdSign}] * 1000) /
-                            1000;
-                double pYZ = Math.Truncate(probabiltyForBwithC[new PairedEvent() { FirstSign = triplets.Key.SecondSign, SecondSign = triplets.Key.ThirdSign }] * 1000) /
-                            1000;
-                if (pZ != 0 && pXZ != 0 && pYZ != 0 && pXYZ!=0)
-                {
-                    double result = pXYZ * Math.Log(((pZ*pXYZ) / (pXZ * pYZ)), 2);
+            double HXYZ = 0.0;
+            double HXZ = 0.0;
+            double HYZ = 0.0;
+            double HZ = 0.0;
 
-                    sum += result;
-                }
+
+           // ConcurrentDictionary<char, double> tmpZ = new ConcurrentDictionary<char, double>();
+           // ConcurrentDictionary<PairedEvent, double> tmpXwithZ = new ConcurrentDictionary<PairedEvent, double>();
+           // ConcurrentDictionary<PairedEvent, double> tmpYwithZ = new ConcurrentDictionary<PairedEvent, double>();
+
+            foreach (var triplets in probabiltyForXwithYwithZ)
+            {
+                var tmp = Math.Truncate(triplets.Value * 1000)/ 1000;
+                HXYZ-=tmp * Math.Log(tmp, 2);
+              //  tmpZ.TryAdd(triplets.Key.ThirdSign, probabiltyForZ[triplets.Key.ThirdSign]);
+              //  tmpXwithZ.TryAdd(new PairedEvent() {FirstSign = triplets.Key.FirstSign,SecondSign = triplets.Key.ThirdSign }, probabiltyForXwithZ[new PairedEvent() { FirstSign = triplets.Key.FirstSign, SecondSign = triplets.Key.ThirdSign }]);
+              //  tmpYwithZ.TryAdd(new PairedEvent() { FirstSign = triplets.Key.SecondSign,SecondSign = triplets.Key.ThirdSign}, probabiltyForXwithZ[new PairedEvent() { FirstSign = triplets.Key.SecondSign, SecondSign = triplets.Key.ThirdSign }]);
+            }
+            foreach (var pairs in probabiltyForXwithZ)
+            {
+                var tmp = Math.Truncate(pairs.Value * 1000)/ 1000;
+                HXZ-=tmp * Math.Log(tmp, 2);
+            }
+            foreach (var pairs in probabiltyForYwithZ)
+            {
+                var tmp = Math.Truncate(pairs.Value * 1000)/ 1000;
+                HYZ-=tmp * Math.Log(tmp, 2);
+            }
+            foreach (var unit in probabiltyForZ)
+            {
+                var tmp = Math.Truncate(unit.Value * 1000)/ 1000;
+                HZ-=tmp * Math.Log(tmp, 2);
             }
 
-            return sum;
+            double result = 0.0;
+            result = HXZ + HYZ - HXYZ - HZ;
+
+            return result;
 
         }
+
+
     }
 public class MutualInformationCal
     {
 
         public double CalculateMI2(string seq1, string seq2) //most right way
         {
-            EntropyCal entorpy = new EntropyCal();
-            var HX = entorpy.EntropyValue(seq1);
-            var HXIY = entorpy.ConditionalEntropyValue(seq1, seq2);
-            var res = HX -HXIY;
-
-            return res;
+            if (seq1 != seq2)
+            {
+                EntropyCal entorpy = new EntropyCal();
+                var HX = entorpy.EntropyValue(seq1);
+                var HY = entorpy.EntropyValue(seq2);
+                var HXIY = entorpy.ConditionalEntropyValue(seq1, seq2);
+                var HYIX = entorpy.ConditionalEntropyValue(seq2, seq1);
+                var tmp1 = HX - HXIY;
+                var tmp2 = HY - HYIX;
+                var res = (tmp1 + tmp2) /2.0;
+                return res;
+            }
+            return 0.0;
         }
         public double CalculateMI3(string seq1, string seq2)
         {
@@ -395,7 +308,8 @@ public class MutualInformationCal
             public char Sign { get; set; }
             public double Value { get; set; }
         }
-          public double ConditionalEntropyValue(string message, string message2)
+
+        public double ConditionalEntropyValue(string message, string message2)
         {
             var alphabetA = message.Distinct().ToList();
             var alphabetB = message2.Distinct().ToList();
