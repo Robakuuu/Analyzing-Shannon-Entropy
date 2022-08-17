@@ -84,6 +84,8 @@ namespace Shannon.Tests
 
             MutualInformationCal sut = new MutualInformationCal();
 
+            var tmp = sut.CalculateMI2("ATCGA", "TCAGC");
+
             ConcurrentDictionary<TestedSequences, double> results = new ConcurrentDictionary<TestedSequences, double>();
             List<char> signs = new List<char>() { 'A', 'T', 'C', 'G' };
             for (int counter = 0; counter < 1000; counter++)
@@ -107,10 +109,12 @@ namespace Shannon.Tests
                 results.TryAdd(ts, result);
 
             }
+            
+            
 
-// var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
+            // var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
 
-      
+
             // AAAAAAAA AAAAAAAA 0
             // AAAAAAAA AAAAAAAT 3
             // XXXXXXXX AAAAAAAA 0
@@ -131,20 +135,20 @@ namespace Shannon.Tests
             // ATTT
 
 
-         // var expectedResult2 = 1.039;
-         //
-         // var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
-         //
-         // result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
-         // //
-         // //A-A 0.25 log2 0.25 / (0.4* 0.1) = 0.25 * 2.6438 =  0.66
-         // //A-T 0.75 log2 0.75 / (0.4 * 0.5) = 0.75 log2 3.75= 0.75 * 1.906 = 1.4295
-         // //T-T 0.4 log2 0.4 / (0.2*0.5) = 0.4 log2 4 = 0.8
-         // //
-         // var expectedResult3 = 0.215;
-         // var result3 = sut.CalculateMI("AAATA", "ATCGG");
-         //
-         // result3.Should().BeLessThan(expectedResult3 + 0.05).And.BeGreaterThan(expectedResult3 - 0.05);
+            // var expectedResult2 = 1.039;
+            //
+            // var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
+            //
+            // result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
+            // //
+            // //A-A 0.25 log2 0.25 / (0.4* 0.1) = 0.25 * 2.6438 =  0.66
+            // //A-T 0.75 log2 0.75 / (0.4 * 0.5) = 0.75 log2 3.75= 0.75 * 1.906 = 1.4295
+            // //T-T 0.4 log2 0.4 / (0.2*0.5) = 0.4 log2 4 = 0.8
+            // //
+            // var expectedResult3 = 0.215;
+            // var result3 = sut.CalculateMI("AAATA", "ATCGG");
+            //
+            // result3.Should().BeLessThan(expectedResult3 + 0.05).And.BeGreaterThan(expectedResult3 - 0.05);
 
 
         }
