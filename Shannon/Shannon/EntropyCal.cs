@@ -48,10 +48,10 @@ namespace ShannonEntropyCal
                         {
                             var tmp = 0.0;
                             double howManyTimesXY = 0;
-                            for (int index = 0; index < message.Length; index++)
+                            for (int index = 0; index < message2.Length; index++)
                             {
 
-                                if (message[index] == firstSign)
+                                if (message2[index] == secondSign)
                                 {
                                     howManyTimesXY++;
                                 }

@@ -67,20 +67,20 @@ namespace Shannon.Tests
                     ts.ThirdSeq+=signs[signInt];
                 }
 
-                var result = sut.MutualConditionaInformation2(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
-                var result2 = sut.MutualConditionaInformation3(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
-                var result3 = sut.MutualConditionaInformationNEW(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+            
+                var result2 = sut.MutualConditionaInformationMoreDetailed(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                var result3 = sut.MutualConditionaInformation(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
                 // var result3 = sut.MutualConditionaInformation4(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
                 //result.Should().BeGreaterThan(0.0);
                 result3.Should().BeGreaterOrEqualTo(0.0);
                 //result3.Should().BeGreaterThan(0.0);
-                results.TryAdd(ts, result);
+                results.TryAdd(ts, result3);
 
             }
             
         }
         [Fact]
-        public void AverageMutualInformation()
+        public void ConditionalMutualInformationMoreDetailed()
         {
             MutualConditionalInformationCal sut = new MutualConditionalInformationCal();
 
@@ -106,8 +106,8 @@ namespace Shannon.Tests
                 }
 
                // var result = sut.MutualConditionaInformation2(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
-                var result2 = sut.MutualConditionaInformation3(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
-                result2.Should().BeGreaterThan(0.0);
+                var result2 = sut.MutualConditionaInformationMoreDetailed(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                result2.Should().BeGreaterOrEqualTo(0.0);
                 results.TryAdd(ts, result2);
 
             }
