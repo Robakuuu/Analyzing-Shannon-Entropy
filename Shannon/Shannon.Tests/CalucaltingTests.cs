@@ -68,13 +68,51 @@ namespace Shannon.Tests
                 }
 
                 var result = sut.MutualConditionaInformation2(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
-                result.Should().BeGreaterThan(0.0);
+                var result2 = sut.MutualConditionaInformation3(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                var result3 = sut.MutualConditionaInformationNEW(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                // var result3 = sut.MutualConditionaInformation4(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                //result.Should().BeGreaterThan(0.0);
+                result3.Should().BeGreaterOrEqualTo(0.0);
+                //result3.Should().BeGreaterThan(0.0);
                 results.TryAdd(ts, result);
 
             }
             
         }
+        [Fact]
+        public void AverageMutualInformation()
+        {
+            MutualConditionalInformationCal sut = new MutualConditionalInformationCal();
 
+            ConcurrentDictionary<TestedSequences, double> results = new ConcurrentDictionary<TestedSequences, double>();
+            List<char> signs = new List<char>() { 'A', 'T', 'C', 'G' };
+            for (int counter = 0; counter < 1000; counter++)
+            {
+                Random r = new Random();
+                int rInt = r.Next(5, 100);
+
+                var ts = new TestedSequences();
+
+                for (int helper = 0; helper < rInt; helper++)
+                {
+                    int signInt = r.Next(0, 4);
+                    ts.FirstSeq+=signs[signInt];
+
+                    signInt = r.Next(0, 4);
+                    ts.SecondSeq+=signs[signInt];
+
+                    signInt = r.Next(0, 4);
+                    ts.ThirdSeq+=signs[signInt];
+                }
+
+               // var result = sut.MutualConditionaInformation2(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                var result2 = sut.MutualConditionaInformation3(ts.FirstSeq, ts.SecondSeq, ts.ThirdSeq);
+                result2.Should().BeGreaterThan(0.0);
+                results.TryAdd(ts, result2);
+
+            }
+
+        }
 
         [Fact]
         public void MutualInformation()
@@ -84,7 +122,7 @@ namespace Shannon.Tests
 
             MutualInformationCal sut = new MutualInformationCal();
 
-            var tmp = sut.CalculateMI2("ATCGA", "TCAGC");
+            var tmp = sut.CalculateMI("ATCGA", "TCAGC");
 
             ConcurrentDictionary<TestedSequences, double> results = new ConcurrentDictionary<TestedSequences, double>();
             List<char> signs = new List<char>() { 'A', 'T', 'C', 'G' };
@@ -104,7 +142,7 @@ namespace Shannon.Tests
                     ts.SecondSeq+=signs[signInt];
                 }
 
-                var result = sut.CalculateMI2(ts.FirstSeq, ts.SecondSeq);
+                var result = sut.CalculateMI(ts.FirstSeq, ts.SecondSeq);
                 result.Should().BeGreaterOrEqualTo(0.0);
                 results.TryAdd(ts, result);
 
@@ -112,7 +150,7 @@ namespace Shannon.Tests
             
             
 
-            // var result = sut.CalculateMI2("XAAAAAAA", "XAAAAAAA");
+            // var result = sut.CalculateMI("XAAAAAAA", "XAAAAAAA");
 
 
             // AAAAAAAA AAAAAAAA 0
@@ -137,7 +175,7 @@ namespace Shannon.Tests
 
             // var expectedResult2 = 1.039;
             //
-            // var result2 = sut.CalculateMI2("AAAATTCCCG", "ATTTTTCCCG");
+            // var result2 = sut.CalculateMI("AAAATTCCCG", "ATTTTTCCCG");
             //
             // result2.Should().BeLessThan(expectedResult2 + 0.05).And.BeGreaterThan(expectedResult2 - 0.05);
             // //

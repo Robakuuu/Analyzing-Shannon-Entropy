@@ -20,8 +20,59 @@ namespace ShannonEntropyCal
             public char Sign { get; set; }
             public double Value { get; set; }
         }
-
         public double ConditionalEntropyValue(string message, string message2)
+        {
+            var alphabetX = message.Distinct().ToList();
+            var alphabetY = message2.Distinct().ToList();
+            double HXIY = 0;
+            var alphabet = alphabetX.Union(alphabetY);
+
+          
+
+            foreach (var firstSign in alphabet)
+            {
+                foreach (var secondSign in alphabet)
+                {
+                   
+                        double count = 0;
+                        for (int index = 0; index < message.Length; index++)
+                        {
+
+                            if (message[index] == firstSign && message2[index] == secondSign )
+                            {
+                                count++;
+                            }
+                        }
+
+                        if (count != 0)
+                        {
+                            var tmp = 0.0;
+                            double howManyTimesXY = 0;
+                            for (int index = 0; index < message.Length; index++)
+                            {
+
+                                if (message[index] == firstSign)
+                                {
+                                    howManyTimesXY++;
+                                }
+                            }
+
+                            if (howManyTimesXY > 0)
+                            {
+                                tmp = count / howManyTimesXY;
+                                HXIY -= (count / (double)message.Length) * Math.Log(tmp, 2);
+                            }
+
+                        }
+
+                    
+                }
+            }
+
+            return HXIY;
+
+        }
+        public double ConditionalEntropyValue2(string message, string message2)
         {
             var alphabetA = message.Distinct().ToList();
             var alphabetB = message2.Distinct().ToList();
