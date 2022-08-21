@@ -436,7 +436,8 @@
             lineChart.Add(chartData);
         }
         string json = JsonConvert.SerializeObject(lineChart);
-        await JS.InvokeVoidAsync("test", json);
+        string xaxisname = "Number of starting subsequence position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        await JS.InvokeVoidAsync("test", json, xaxisname, "Entropy value");
 
 
         _isLoading = false;
