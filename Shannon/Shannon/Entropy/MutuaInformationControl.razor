@@ -20,7 +20,7 @@
 
 
 @page "/mi"
-
+<PageTitle>Shannon - Mutual Information</PageTitle>
 <MudSnackbarProvider/>
 <MudContainer>
     @if (_isLoading)
@@ -139,7 +139,7 @@
         }
     }
     private async Task AlignSequences()
-    {
+    {   
         await OnAlignStarted();
         var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
         string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");

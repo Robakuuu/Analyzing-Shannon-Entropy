@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using MudBlazor
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Shannon Tool</PageTitle>
 
 <MudCarousel Style="height: 100vh;" ShowArrows="false" ShowBullets="false" AutoCycle="false"  TData="object">
     <MudCarouselItem Transition="transition" Color="@Color.Tertiary">
@@ -9,8 +9,7 @@
         <div class="d-flex" style="height: 100%">
             <MudText Typo="Typo.h1" Class="mx-auto my-auto">Shannon Tool <br/>
                 <br/>
-                <MudText Typo="Typo.body1" Class="mx-auto my-auto">This tool allows you to calculate entropy, based on nucleotide sequence and visualize it by simple chart. You can compare few sequences.
-                    <br/>You can also fetch data from NCBI by accession number form input sequences.
+                <MudText Typo="Typo.body1" Class="mx-auto my-auto">This tool allows you to calculate entropy, conditional entropy, mutual information and conditional mutual information based on nucleotide sequences and visualize it by simple chart.
                     <br/>Input format: FASTA file or text.
                     <br/>Tool is based on webassembly, so performance strictly depends on your machine resources.
                 </MudText>
