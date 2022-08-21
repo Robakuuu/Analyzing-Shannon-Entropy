@@ -19,7 +19,7 @@
 @inject ISnackbar Snackbar
 
 
-@page "/ami"
+@page "/ce"
 
 <MudSnackbarProvider/>
 <MudContainer>
@@ -192,7 +192,7 @@
     {
         await Task.Run(()=>ShowMessage("Starting calculations..."));
       
-        var seq = CalculateAverageMutualInformation().Result;
+        var seq = CalculateConditionalEntropy().Result;
         _chartSeqence = new EntropyControl.CurrentSequencesOnChart() { name = seq.Name, seq = seq };
         await Task.Run(HandleRedraw);
     }
@@ -243,17 +243,17 @@
         StateHasChanged();
 
     }
-    private async Task<SequenceEntropy> CalculateAverageMutualInformation()
+    private async Task<SequenceEntropy> CalculateConditionalEntropy()
     {
         MutualInformationCal cal = new MutualInformationCal();
         _mutualInformationResult = new List<double>();
         for (int index=0; (index+_subsequenceLength-1)<_alignedFirstSequence.Length;index++)
         {
-            _mutualInformationResult.Add(cal.CalculateAverageMI(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength)));
+            _mutualInformationResult.Add(cal.CalculateConditionalEntropy(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength)));
         }
         SequenceEntropy seq = new SequenceEntropy()
         {
-            Name = "Mutual information for: " + _choosenFirstSequence + "and" + _choosenSecondSequence,
+            Name = "Conditional entropy for: " + _choosenFirstSequence + "and" + _choosenSecondSequence,
             Score = _mutualInformationResult
         };
         await ShowMessage("Calculations finished!");
