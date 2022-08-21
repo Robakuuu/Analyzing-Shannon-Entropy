@@ -42,11 +42,19 @@
             {
                 <MudButton Disabled="true" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                            Color="Color.Transparent"> Align sequences</MudButton>
+                <br/>
+                <br/>
+                <MudButton Disabled="true"   Style="position: relative; top: 50%;" Variant="Variant.Filled"
+                           Color="Color.Primary"> Sequences are already aligned</MudButton>
             }
             else
             {
                 <MudButton OnClick="AlignSequences" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                            Color="Color.Primary"> Align sequences</MudButton>
+                <br/>
+                <br/>
+                <MudButton OnClick="SequencesAreReady" Style="position: relative; top: 50%;" Variant="Variant.Filled"
+                           Color="Color.Primary"> Sequences are already aligned</MudButton>
             }
 
         </MudItem>
@@ -61,11 +69,8 @@
             <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
             <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
 
-            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
-            <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
-            <MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
             <MudButton OnClick="AddOrRemoveFromChart" Style="position: relative; top: 50%;" Variant="Variant.Filled"
-                       Color="Color.Primary"> Calculate Mutual Information</MudButton>
+                       Color="Color.Primary"> Calculate Conditional Entropy</MudButton>
         </MudPaper>
        
 
@@ -101,23 +106,7 @@
     private List<double> _mutualInformationResult= new List<double>();
     List<EntropyControl.ChartData> lineChart = new List<EntropyControl.ChartData>();
     private EntropyControl.CurrentSequencesOnChart _chartSeqence = new EntropyControl.CurrentSequencesOnChart();
-    public int StartRange { get; set; }
-    private int _endRange;
-    public int EndRange
-    {
-        get
-        {
-            if (_endRange != 0) return _endRange;
-            int size = 0;
-           
-                if (_chartSeqence.seq.Score.Count > size)
-                    size = _chartSeqence.seq.Score.Count;
-            
-            return size;
 
-        }
-        set => _endRange = value;
-    }
     private async Task ChangeSubsequence()
     {
         await AddOrRemoveFromChart();
@@ -138,54 +127,63 @@
             await HandleRedraw();
         }
     }
-    private async Task AlignSequences()
+
+
+    private async Task SequencesAreReady()
     {
-        await OnAlignStarted();
         var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
         string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
-
-        Bio.Sequence seq = new Bio.Sequence( DnaAlphabet.Instance,seqString);
 
         var sequenceSecond= _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence);
         string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
 
-        Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
-
-        var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
-        var result= await Task.Run(()=>alt.Align(new List<ISequence>() { seq, seq1 }));
-
-
-        //var result=alt.Align(new List<ISequence>(){seq,seq1});
-        if (!result.IsNullOrEmpty())
+        if (seqString.Length != seqSecondString.Length)
         {
-            await ShowMessage("Alignment sucessfully completed!");
+            await ShowMessage("Sequences have diffrent length, alignment can be wrong!");
+        }
+       
+        _alignedFirstSequence = seqString;
+        _alignedSecondtSequence = seqSecondString;
+    }
+    private async Task AlignSequences()
+    {
+        await OnAlignStarted();
 
-            string? bestFirstSeq = "";
-            string? bestSecondSeq = "";
-            long score = -1;
-            foreach (IPairwiseSequenceAlignment seqAlignment in result)
-            {
-                foreach (PairwiseAlignedSequence alignedSeq in seqAlignment)
-                {
-                    if (score < alignedSeq.Score)
-                    {
-                        bestFirstSeq=alignedSeq.FirstSequence.ConvertToString();
-                        bestSecondSeq=alignedSeq.SecondSequence.ConvertToString();
-                        score = alignedSeq.Score;
-                    }
-                }
-            }
-            _alignedFirstSequence = bestFirstSeq;
-            _alignedSecondtSequence = bestSecondSeq;
+        var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
+        string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
+
+      
+
+        var sequenceSecond= _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence);
+        string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
+
+        AlignerNW nw = new AlignerNW();
+        AlignResult alignres = new AlignResult();
+
+        if (seqString.Length > 10000 || seqSecondString.Length>10000)
+        {
+            await ShowMessage("Sequences are to long to be align by Needleman-Wunsch algorithm easily, please use third-party alignment tool!");
         }
         else
         {
-            await ShowMessage("Alignment failed!");
-
+           
+            try
+            {
+                alignres=nw.AlignSequencesNW(seqString, seqSecondString);
+            }
+            catch (Exception e)
+            {
+                await ShowMessage(e.Message);
+            }
         }
-        //var res = result[0].Sequences[0].GetComplementedSequence();
-       
         
+       
+        await ShowMessage("Alignment finished!");
+        _alignedFirstSequence = alignres.FirstSequence;
+        _alignedSecondtSequence = alignres.SecondSequence;
+
+
+
     }
 
     private async Task AddOrRemoveFromChart()
@@ -203,12 +201,9 @@
         List<double> retList = new List<double>();
         foreach (var sc in seqentEntropy.Score)
         {
-            if (counter >= StartRange &&
-                counter <= EndRange)
-            {
+          
                 retList.Add(sc);
-            }
-            counter++;
+          
         }
         return retList;
     }
@@ -219,7 +214,7 @@
        
             var list = GetEntropyScoreList(_chartSeqence.seq);
             List<double> yAxis = new List<double>();
-            int tmp = StartRange;
+            int tmp = 0;
             foreach (var counter in list)
             {
                 yAxis.Add(tmp);
@@ -236,7 +231,8 @@
             lineChart.Add(chartData);
         
         string json = JsonConvert.SerializeObject(lineChart);
-        await JS.InvokeVoidAsync("test", json);
+        string xaxisname = "Number of starting subsequence position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        await JS.InvokeVoidAsync("test", json, xaxisname, "Conditional Entropy value");
 
 
         _isLoading = false;

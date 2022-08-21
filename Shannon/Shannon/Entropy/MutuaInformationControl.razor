@@ -42,11 +42,19 @@
             {
                 <MudButton Disabled="true" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                            Color="Color.Transparent"> Align sequences</MudButton>
+                <br/>
+                <br/>
+                <MudButton Disabled="true"   Style="position: relative; top: 50%;" Variant="Variant.Filled"
+                           Color="Color.Primary"> Sequences are already aligned</MudButton>
             }
             else
             {
                 <MudButton OnClick="AlignSequences" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                            Color="Color.Primary"> Align sequences</MudButton>
+                <br/>
+                <br/>
+                <MudButton OnClick="SequencesAreReady" Style="position: relative; top: 50%;" Variant="Variant.Filled"
+                           Color="Color.Primary"> Sequences are already aligned</MudButton>
             }
 
         </MudItem>
@@ -61,9 +69,6 @@
             <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
             <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
 
-            <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
-            <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
-            <MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
             <MudButton OnClick="AddOrRemoveFromChart" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                        Color="Color.Primary"> Calculate Mutual Information</MudButton>
         </MudPaper>
@@ -141,53 +146,59 @@
     private async Task AlignSequences()
     {   
         await OnAlignStarted();
+
         var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
         string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
 
-        Bio.Sequence seq = new Bio.Sequence( DnaAlphabet.Instance,seqString);
+      
 
         var sequenceSecond= _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence);
         string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
 
-        Bio.Sequence seq1 = new Bio.Sequence( DnaAlphabet.Instance, seqSecondString);
+        AlignerNW nw = new AlignerNW();
+        AlignResult alignres = new AlignResult();
 
-        var alt= new Bio.Algorithms.Alignment.NucmerPairwiseAligner();
-        var result= await Task.Run(()=>alt.Align(new List<ISequence>() { seq, seq1 }));
-
-
-        //var result=alt.Align(new List<ISequence>(){seq,seq1});
-        if (!result.IsNullOrEmpty())
+        if (seqString.Length > 10000 || seqSecondString.Length>10000)
         {
-            await ShowMessage("Alignment sucessfully completed!");
-
-            string? bestFirstSeq = "";
-            string? bestSecondSeq = "";
-            long score = -1;
-            foreach (IPairwiseSequenceAlignment seqAlignment in result)
-            {
-                foreach (PairwiseAlignedSequence alignedSeq in seqAlignment)
-                {
-                    if (score < alignedSeq.Score)
-                    {
-                        bestFirstSeq=alignedSeq.FirstSequence.ConvertToString();
-                        bestSecondSeq=alignedSeq.SecondSequence.ConvertToString();
-                        score = alignedSeq.Score;
-                    }
-                }
-            }
-            _alignedFirstSequence = bestFirstSeq;
-            _alignedSecondtSequence = bestSecondSeq;
+            await ShowMessage("Sequences are to long to be align by Needleman-Wunsch algorithm easily, please use third-party alignment tool!");
         }
         else
         {
-            await ShowMessage("Alignment failed!");
-
+           
+            try
+            {
+                alignres=nw.AlignSequencesNW(seqString, seqSecondString);
+            }
+            catch (Exception e)
+            {
+                await ShowMessage(e.Message);
+            }
         }
-        //var res = result[0].Sequences[0].GetComplementedSequence();
+        
+       
+        await ShowMessage("Alignment finished!");
+        _alignedFirstSequence = alignres.FirstSequence;
+        _alignedSecondtSequence = alignres.SecondSequence;
+
        
         
     }
+    private async Task SequencesAreReady()
+    {
+        var sequenceFirst= _fastaReaderFirstSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenFirstSequence);
+        string seqString = sequenceFirst.Data.ToMultilineString().Replace("\n","");
 
+        var sequenceSecond= _fastaReaderSecondSeq.Sequences.SingleOrDefault(x => x.Header.ToString() == _choosenSecondSequence);
+        string seqSecondString = sequenceSecond.Data.ToMultilineString().Replace("\n","");;
+
+        if (seqString.Length != seqSecondString.Length)
+        {
+            await ShowMessage("Sequences have diffrent length, alignment can be wrong!");
+        }
+       
+        _alignedFirstSequence = seqString;
+        _alignedSecondtSequence = seqSecondString;
+    }
     private async Task AddOrRemoveFromChart()
     {
         await Task.Run(()=>ShowMessage("Starting calculations..."));
@@ -236,7 +247,8 @@
             lineChart.Add(chartData);
         
         string json = JsonConvert.SerializeObject(lineChart);
-        await JS.InvokeVoidAsync("test", json);
+        string xaxisname = "Number of starting subsequence position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        await JS.InvokeVoidAsync("test", json, xaxisname, "Mutual Information value");
 
 
         _isLoading = false;
@@ -253,7 +265,7 @@
         }
         SequenceEntropy seq = new SequenceEntropy()
         {
-            Name = "Mutual information for: " + _choosenFirstSequence + "and" + _choosenSecondSequence,
+            Name = "Mutual information for: " + _choosenFirstSequence + " and " + _choosenSecondSequence,
             Score = _mutualInformationResult
         };
         await ShowMessage("Calculations finished!");

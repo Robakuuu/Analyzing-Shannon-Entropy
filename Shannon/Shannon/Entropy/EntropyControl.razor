@@ -140,10 +140,6 @@
         <MudText Typo="Typo.h3">3. Choose properties:</MudText>
         <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
         <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
-
-        <MudTextField @bind-Value="StartRange" Label="Starting nucleotide" Variant="Variant.Text"></MudTextField>
-        <MudTextField @bind-Value="EndRange" Label="Ending nucleotide" Variant="Variant.Text"></MudTextField>
-        <MudButton Variant="Variant.Filled" OnClick="@HandleRedraw" Color="Color.Primary">Change range</MudButton>
     </MudPaper>
 
 
@@ -181,25 +177,7 @@
     private long maxFileSize = 1024 * 1024 * 15;
     private bool _isLoading = false;
     private bool _dataLoaded = false;
-    public int StartRange { get; set; }
-
-    public int EndRange
-    {
-        get
-        {
-            if (_endRange != 0) return _endRange;
-            int size = 0;
-            foreach (var seq in _chartSeqences)
-            {
-                if (seq.seq.Score.Count > size)
-                    size = seq.seq.Score.Count;
-            }
-            return size;
-
-        }
-        set => _endRange = value;
-    }
-
+   
     public class CurrentSequencesOnChart
     {
         public string name = "";
@@ -282,9 +260,6 @@
         }
         else if(dst.Count>0)
         {
-            StartRange = dst[0].start;
-            EndRange = dst[0].end;
-            ShowMessage($"Chart changed range: Start - {StartRange} End - {EndRange}");
             await HandleRedraw();
         }
     }
@@ -383,16 +358,13 @@
     public List<double> GetEntropyScoreList(SequenceEntropy seqentEntropy)
     {
 
-        int counter = 1;
+       
         List<double> retList = new List<double>();
         foreach (var sc in seqentEntropy.Score)
         {
-            if (counter >= StartRange &&
-                counter <= EndRange)
-            {
+       
                 retList.Add(sc);
-            }
-            counter++;
+            
         }
         return retList;
     }
@@ -420,7 +392,7 @@
         {
             var list = GetEntropyScoreList(seq.seq);
             List<double> yAxis = new List<double>();
-            int tmp = StartRange;
+            int tmp = 0;
             foreach (var counter in list)
             {
                 yAxis.Add(tmp);
@@ -472,7 +444,7 @@
                 {
                     var substr = seq.Substring(index, _subsequenceLength);
 
-                    seqentEntropy.Score.Add(Math.Truncate(ent.EntropyValue(substr) * 100) / 100);
+                    seqentEntropy.Score.Add(Math.Truncate(ent.EntropyValue(substr) * 1000) / 1000);
                 }
             }
 
