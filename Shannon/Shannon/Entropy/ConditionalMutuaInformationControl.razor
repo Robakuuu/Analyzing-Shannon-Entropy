@@ -206,11 +206,11 @@
         _mutualInformationResult = new List<double>();
         for (int index=0; (index+_subsequenceLength-1)<_alignedFirstSequence.Length;index++)
         {
-            _mutualInformationResult.Add(cal.MutualConditionaInformationMoreDetailed(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index,_subsequenceLength)));
+            _mutualInformationResult.Add(cal.MutualConditionaInformationMoreDetailed(_alignedFirstSequence.Substring(index, _subsequenceLength), _alignedSecondtSequence.Substring(index, _subsequenceLength), _alignedThirdSequence.Substring(index,_subsequenceLength)));
         }
         SequenceEntropy seq = new SequenceEntropy()
         {
-            Name = "Mutual information for: " + _choosenFirstSequence + "and" + _choosenSecondSequence,
+            Name = "Mutual information for: " + _choosenFirstSequence + " and " + _choosenSecondSequence + " and "+ _choosenThirdSequence,
             Score = _mutualInformationResult
         };
         await ShowMessage("Calculations finished!");

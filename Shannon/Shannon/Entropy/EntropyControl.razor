@@ -57,7 +57,8 @@
 
             @if (_fastaReader.Sequences.Count() != 0)
             {
-
+                <MudButton OnClick="AddAllSequencesToChart"  Variant="Variant.Filled"
+                           Color="Color.Primary"> Add all sequences to chart</MudButton>
                 @foreach (var seq in _fastaReader.Sequences)
                 {
                     <MudNavGroup Title=@seq.Header.ToString() Icon="@Icons.Filled.Timeline" Expanded="false">
@@ -67,11 +68,11 @@
                                 {
                                     @if (_chartSeqences.ToArray().Any(x => x.name == seq.Header.ToString()))
                                     {
-                                        <MudListItem> <MudButton Color="Color.Secondary"  Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))" > Unload </MudButton></MudListItem>
+                                        <MudListItem> <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))"> Unload </MudButton></MudListItem>
                                     }
                                     else
                                     {
-                                        <MudListItem> <MudButton Color="Color.Secondary"  Variant="Variant.Filled" OnClick="@(() => ClearChart())">Clear</MudButton></MudListItem>
+                                        <MudListItem> <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="@(() => ClearChart())">Clear</MudButton></MudListItem>
                                     }
 
                                 }
@@ -79,14 +80,14 @@
                                 {
                                     @if (ChoosenSequence == "")
                                     {
-                                        <MudListItem> <MudButton Color="Color.Primary"  Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))">Add to chart </MudButton></MudListItem>
+                                        <MudListItem> <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => OnStartGeneratePlot(seq.Header.ToString()))">Add to chart </MudButton></MudListItem>
                                     }
                                     else
                                     {
-                                        <MudListItem> <MudButton Color="Color.Primary"  Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))">Add to chart </MudButton></MudListItem>
+                                        <MudListItem> <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => StartAddOrRemoveFromChart(seq.Header.ToString()))">Add to chart </MudButton></MudListItem>
                                     }
                                 }
-                                <MudListItem> <MudButton Color="Color.Primary"  Variant="Variant.Filled" OnClick="@(() => DownloadDataFromNCBI(seq.Header.ToString()))">Fetch features from NCBI</MudButton></MudListItem>
+                                <MudListItem> <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => DownloadDataFromNCBI(seq.Header.ToString()))">Fetch features from NCBI</MudButton></MudListItem>
                             </MudList>
                         </MudContainer>
                         @if (_fastaReader.NcbiDatas.Any(x => x.FULLNAME == seq.Header.ToString()))
@@ -177,7 +178,7 @@
     private long maxFileSize = 1024 * 1024 * 15;
     private bool _isLoading = false;
     private bool _dataLoaded = false;
-   
+
     public class CurrentSequencesOnChart
     {
         public string name = "";
@@ -358,13 +359,13 @@
     public List<double> GetEntropyScoreList(SequenceEntropy seqentEntropy)
     {
 
-       
+
         List<double> retList = new List<double>();
         foreach (var sc in seqentEntropy.Score)
         {
-       
-                retList.Add(sc);
-            
+
+            retList.Add(sc);
+
         }
         return retList;
     }
@@ -372,7 +373,7 @@
     {
         _chartSeqences.Clear();
         _chartSeqences.Add(new CurrentSequencesOnChart() { name = seqentEntropy.Name, seq = seqentEntropy });
-        
+
         await HandleRedraw();
     }
 
@@ -472,5 +473,12 @@
     }
 
 
+    private async Task AddAllSequencesToChart()
+    {
+        foreach (var seq in _fastaReader.Sequences)
+        {
+            StartAddOrRemoveFromChart(seq.Header.ToString());
+        }
+    }
 
 }
