@@ -57,8 +57,7 @@
 
             @if (_fastaReader.Sequences.Count() != 0)
             {
-                <MudButton OnClick="AddAllSequencesToChart"  Variant="Variant.Filled"
-                           Color="Color.Primary"> Add all sequences to chart</MudButton>
+                
                 @foreach (var seq in _fastaReader.Sequences)
                 {
                     <MudNavGroup Title=@seq.Header.ToString() Icon="@Icons.Filled.Timeline" Expanded="false">
@@ -139,8 +138,10 @@
 
     <MudPaper Class="pa-16 ma-2" Elevation="3">
         <MudText Typo="Typo.h3">3. Choose properties:</MudText>
-        <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
-        <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
+        <MudTextField @bind-Value="_subsequenceLength" Label="Frame size" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="windowsize" Label="Windows size" Variant="Variant.Text"></MudTextField>
+        <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Calculate entropy</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="@CalculateDifference" Color="Color.Primary">Calculate differece</MudButton>
     </MudPaper>
 
 
@@ -200,7 +201,7 @@
     private FastaReader _fastaReader = new FastaReader();
     private int _subsequenceLength = 18;
     private List<CurrentSequencesOnChart> _chartSeqences = new List<CurrentSequencesOnChart>();
-    private int _endRange;
+    private int windowsize = 1;
 
     public bool PlotShow { get; set; } = true;
     public string ChoosenSequence { get; set; } = "";
@@ -396,8 +397,10 @@
             int tmp = 0;
             foreach (var counter in list)
             {
-                yAxis.Add(tmp);
+
+                yAxis.Add(tmp* windowsize);
                 tmp++;
+                
             }
             ChartData chartData = new ChartData()
                 {
@@ -439,7 +442,7 @@
             EntropyCal ent = new EntropyCal();
 
             seqentEntropy.Name = seqname;
-            for (int index = 0; index < seq.Length; index++)
+            for (int index = 0; index < seq.Length; index+=windowsize)
             {
                 if ((_subsequenceLength + index) < seq.Length)
                 {
@@ -473,12 +476,67 @@
     }
 
 
-    private async Task AddAllSequencesToChart()
+ 
+    private async Task CalculateDifference()
     {
+        _chartSeqences.Clear();
         foreach (var seq in _fastaReader.Sequences)
         {
-            StartAddOrRemoveFromChart(seq.Header.ToString());
+            _chartSeqences.Add(new CurrentSequencesOnChart() { name = seq.Header.ToString(), seq = OnCalculateSequence(seq.Header.ToString()) });
         }
+
+        List<CurrentSequencesOnChart> newSeqs = new List<CurrentSequencesOnChart>();
+        foreach (var seq in _chartSeqences)
+        {
+            newSeqs.Add(new CurrentSequencesOnChart() { name = seq.name, seq = OnCalculateSequence(seq.name) });
+        }
+
+        SequenceEntropy diffSeq = new SequenceEntropy();
+        int count = 0;
+        foreach (var newSeq in newSeqs)
+        {
+            if (newSeq.seq.Score.Count > count)
+                count=newSeq.seq.Score.Count;
+        }
+        double[] fakeArray = new double[count];
+        List<double> listOfScore = fakeArray.ToList();
+        List<double> listOfAverageScore = fakeArray.ToList();
+        foreach (var newSeq in newSeqs)
+        {
+            int index = 0;
+            foreach (var score in newSeq.seq.Score)
+            {
+                listOfAverageScore[index] += score;
+                index++;
+            }
+        }
+        for (int index = 0; index < listOfAverageScore.Count; index++)
+        {
+            listOfAverageScore[index] = listOfAverageScore[index] / (double)newSeqs.Count;
+        }
+        foreach (var newSeq in newSeqs)
+        {
+            int index = 0;
+            foreach (var score in newSeq.seq.Score)
+            {
+                listOfScore[index] += System.Math.Pow((score - listOfAverageScore[index]),2.0);
+                index++;
+            }
+        }
+       
+        for (int index = 0; index < listOfAverageScore.Count; index++)
+        {
+            listOfScore[index] = listOfScore[index] / (double)newSeqs.Count;
+        }
+               
+                
+        List<CurrentSequencesOnChart> resSeq = new List<CurrentSequencesOnChart>();
+        SequenceEntropy resultSeq = new SequenceEntropy() { Score = listOfScore };
+
+        resSeq.Add(new CurrentSequencesOnChart() { name = "Variations beetwen seuqences", seq = resultSeq });
+        _chartSeqences.Clear();
+        _chartSeqences = resSeq;
+        await Task.Run(HandleRedraw);
     }
 
 }
