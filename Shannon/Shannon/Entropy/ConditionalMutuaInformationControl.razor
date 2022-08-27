@@ -192,7 +192,7 @@
             lineChart.Add(chartData);
         
         string json = JsonConvert.SerializeObject(lineChart);
-        string xaxisname = "Number of starting subsequence position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        string xaxisname = "Number of frame starting position in sequence (Subsequence length:" + _subsequenceLength + ")";
         await JS.InvokeVoidAsync("test", json, xaxisname, "Conditional Mutual Information value");
 
 
