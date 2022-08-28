@@ -10,8 +10,11 @@ function test(datas,xaxisname,yaxisname) {
                 text: xaxisname,
                 font: {
                     size: 18,
-                    color: '#7f7f7f'
-                }
+                    color: '#7f7f7f',
+                    
+                    
+                },
+               
             },
         },
         yaxis: {
