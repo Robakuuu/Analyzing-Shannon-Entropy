@@ -64,8 +64,8 @@
         <MudItem>
         <MudPaper Class="pa-16 ma-2" Elevation="3">
             <MudText Typo="Typo.h3">3. Choose properties:</MudText>
-            <MudTextField @bind-Value="_subsequenceLength" Label="Calculated subsequence" Variant="Variant.Text"></MudTextField>
-            <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>
+            <MudTextField @bind-Value="_subsequenceLength" Label="Frame size" Variant="Variant.Text"></MudTextField>
+                    @*<MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Change subsequence</MudButton>*@
 
             <MudButton OnClick="AddOrRemoveFromChart" Style="position: relative; top: 50%;" Variant="Variant.Filled"
                        Color="Color.Primary"> Calculate Conditional Mutual Information</MudButton>
@@ -192,7 +192,7 @@
             lineChart.Add(chartData);
         
         string json = JsonConvert.SerializeObject(lineChart);
-        string xaxisname = "Number of frame starting position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        string xaxisname = "Number of frame starting position in sequence (Frame size:" + _subsequenceLength + ")";
         await JS.InvokeVoidAsync("test", json, xaxisname, "Conditional Mutual Information value");
 
 

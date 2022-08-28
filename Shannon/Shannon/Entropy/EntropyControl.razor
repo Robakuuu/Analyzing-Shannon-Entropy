@@ -139,9 +139,9 @@
     <MudPaper Class="pa-16 ma-2" Elevation="3">
         <MudText Typo="Typo.h3">3. Choose properties:</MudText>
         <MudTextField @bind-Value="_subsequenceLength" Label="Frame size" Variant="Variant.Text"></MudTextField>
-        <MudTextField @bind-Value="windowsize" Label="Windows size" Variant="Variant.Text"></MudTextField>
+        @*<MudTextField @bind-Value="windowsize" Label="Windows size" Variant="Variant.Text"></MudTextField>*@
         <MudButton Variant="Variant.Filled" OnClick="@ChangeSubsequence" Color="Color.Primary">Calculate entropy</MudButton>
-        <MudButton Variant="Variant.Filled" OnClick="@CalculateDifference" Color="Color.Primary">Calculate differece</MudButton>
+        @* <MudButton Variant="Variant.Filled" OnClick="@CalculateDifference" Color="Color.Primary">Calculate differece</MudButton>*@
     </MudPaper>
 
 
@@ -412,7 +412,7 @@
             lineChart.Add(chartData);
         }
         string json = JsonConvert.SerializeObject(lineChart);
-        string xaxisname = "Number of frame starting position in sequence (Subsequence length:" + _subsequenceLength + ")";
+        string xaxisname = "Number of frame starting position in sequence (Frame size:" + _subsequenceLength + ")";
         await JS.InvokeVoidAsync("test", json, xaxisname, "Entropy value");
 
 
